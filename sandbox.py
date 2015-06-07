@@ -16,7 +16,7 @@ pwrStatus = pin.read()
 # Serial
 ##################################################
 # Query GPS
-gpsSerial = serial.Serial('/dev/ttyMFD1', 4800)  # MFD1 corresponds to UART1
+gpsSerial = serial.Serial('/dev/ttyMFD1', 9600)  # MFD1 corresponds to UART1
 msg = gpsSerial.readline()  # Reads some characters
 
 # Parse the GPS coorginates.
@@ -77,7 +77,7 @@ a = acclSensor.getAcceleration()  # Returns a list of floats [x, y, z]
 
 # HMC58831 Digital Compas
 import pyupm_hmc5883l
-compas = pyupm_hmc5883l.Hmc5881l(1)  # 1 is the i2c bus number
+compas = pyupm_hmc5883l.Hmc5883l(1)  # 1 is the i2c bus number
 compas.update()
 heading = compas.heading()
 direction = compas.direction()
@@ -88,3 +88,9 @@ import Sht1x
 sht1x = Sht1x.Sht1x(7, 19)       # Using the 3.3V I2C bus
 temp = sht1x.read_temperature_C()
 humidity = sht1x.read_humidity()
+
+# 16ch PCA9685 PWM Board
+import pyupm_pca9685 as pca
+pwm = pca.PCA9685(1, 0x40)
+pwm.ledFullOn(1, False)
+pwm.ledFullOff(1, False)
