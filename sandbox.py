@@ -91,6 +91,6 @@ humidity = sht1x.read_humidity()
 
 # 16ch PCA9685 PWM Board
 import pyupm_pca9685 as pca
-pwm = pca.PCA9685(1, 0x40)
-pwm.ledFullOn(1, False)
+pwm = pca.PCA9685(1, 0x40)      # (bus number, device address)
+pwm.ledFullOn(1, False)         # The boolean logic was reversed for some reason
 pwm.ledFullOff(1, False)
