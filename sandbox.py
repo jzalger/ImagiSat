@@ -42,6 +42,17 @@ while True:
         # Do something with this usefulness
 
 ##################################################
+# RockBlock Examples
+#################################################
+import rockblock
+rb = rockBlock.rockBlock("/dev/ttyMFD1", None)
+rb.sendMessage("Hello From Space")
+rb.close()
+
+# Better to implement a class with the rockblock protocol with callbacks
+# See http://www.makersnake.com/rockblock/
+
+##################################################
 # PWM
 ##################################################
 pwmPin = mraa.Pwm(21)  # MRAA pin number, eg 21 = PWM 3
