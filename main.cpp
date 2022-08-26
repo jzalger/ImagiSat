@@ -1,13 +1,11 @@
 #include "mbed.h"
-#include "MAX17048.h"
-#include "BMP085.h"
 #include "SerialGPS.h"
 #include "Arduino.h"
 #include "BLEPeripheral.h"
 #include "stdlib.h"
 #include <string>
 
-#define SCL PB_8  //Fuel Gauge, IMU
+#define SCL PB_8 
 #define SDA PB_9
 #define UART6_TX PA_11  //ROCKBLOCK
 #define UART6_RX PA_12
@@ -17,7 +15,6 @@
 #define ALL_SLEEP_PIN PA_6
 float battPercent = 0;
 float battVoltage = 0;
-//MAX17048 fuelGauge(SDA,SCL);  //(Low Bat % threashold, alert pin)
 
 //GPS on Serial1
 #define GPS_BAUD 9600
@@ -25,11 +22,11 @@ float battVoltage = 0;
 #define GPS_TX PA_9
 #define GPS_RX PA_10
 #define GPS_PWR_PIN PB_6
+
 bool gpsLock = false;
 bool gpsConnect = false;
 DigitalOut GPS_PWR(GPS_PWR_PIN);
 SerialGPS gps(GPS_TX,GPS_RX,GPS_BAUD);
-
 
 //Device State Variables
 bool gpsOn = false;
@@ -44,20 +41,6 @@ bool rockBlockOn = false;
 Serial serial(USBTX, USBRX);
 
 
-//Bluetooth runs SPI
-#define MOSI D11
-#define MISO D12
-#define SCK D13
-#define REQ D6
-#define RDY D7     // This should be an interrupt pin, on Uno thats #2 or #3
-#define RST D5
-#define BT_PWR_PIN PA_9
-SPI spi(MOSI, MISO, SCK);
-DigitalInOut BLE_RDY(RDY);
-DigitalInOut BLE_REQ(REQ);
-DigitalInOut BLE_RESET(RST);
-DigitalOut BLE_PWR(BT_PWR_PIN);
-
 /*----- BLE Utility -------------------------------------------------------------------------*/
 BLEPeripheral            blePeripheral        = BLEPeripheral(&BLE_REQ, &BLE_RDY, &BLE_RESET);
 BLEService               uartService          = BLEService("713d0000503e4c75ba943148f18d941e");
@@ -68,17 +51,18 @@ unsigned char txlen = 0;
 unsigned int interval = 0;
 unsigned char count_on = 0;
 
-//BMP085 Pressure Sensor (I2C)
-BMP085 psens(SDA,SCL);
+
 struct wxReading {
     float pressure;
     float temp;
     float alt;
     float slp;
+    float rh;
+    float voc;
 };
 
 //Create a struct to hold the current weather reading
-wxReading currentWx = {0,0};
+wxReading currentWx = {0,0,0,0,0,0};
 
 void initBLE()
 {
@@ -117,16 +101,6 @@ void toggleGPSPower()
     }
 }
 
-void toggleBTPower()
-{
-    if (bluetoothOn == true) {
-        BLE_PWR = 0;
-        bluetoothOn = false;
-    } else if (bluetoothOn == false) {
-        BLE_PWR = 1;
-        bluetoothOn = true;
-    }
-}
 void toggleRBPower()
 {
     if (rockBlockOn == true) {
@@ -147,25 +121,8 @@ void toggleWxLogging()
     }
 }
 
-void getBattLevel()
-{
-//fuelGauge.wake();
-//battVoltage = fuelGauge.getBatteryVoltage();
-//battPercent = fuelGauge.getBatteryPercentage();
-//fuelGauge.sleep();
+void getBattLevel() {
 }
-
-/*
-void sendBattLevel() {
- char outBuff[10];
- int len = strlen(outBuff);
- PString str(outBuff, sizeof(outBuff) - len);
- str.print(battVoltage);
- str.print(",");
- str.print(battPercent);
- sendDataToBT(outBuff);
-}
-*/
 
 void sendLocation()
 {
@@ -183,29 +140,11 @@ void sendLocation()
     }
 }
 
-void getWxReading()
-{
-    //psens.update();
-    //float pressure = psens.get_pressure();
-    //float temp = psens.get_temperature();
-    //currentWx.temp = temp;
-    //currentWx.pressure = pressure;
-    //currentWx.slp = psens.readSealevelPressure();
-    //currentWx.alt = psens.readAltitude();
+void getWxReading() {
 }
 
-void sendWxReading()
-{
-    //char outBuffer[60];
-    //int len = strlen(outBuffer);
-    //PString str(outBuffer, sizeof(outBuffer) - len);
-    //str.print(currentWx.temp, 3);
-    //str.print(",");
-    //str.print(currentWx.pressure, 3);
-
-//    sendDataToBT(outBuffer);
+void sendWxReading(){
 }
-
 
 
 void actionBluetooth(const unsigned char *rxBuf, int rxlen)
