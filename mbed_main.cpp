@@ -1,7 +1,4 @@
-#include "mbed.h"
-#include "SerialGPS.h"
-#include "Arduino.h"
-#include "BLEPeripheral.h"
+
 #include "stdlib.h"
 #include <string>
 
