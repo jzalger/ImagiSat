@@ -14,10 +14,9 @@
 #include <IridiumSBD.h>
 //#include "WiFi.h"
 
-#define UI_PIN_1 A0
 #define DEBUG_PIN 21
 #define PIXEL_COUNT 16
-#define PIXEL_PIN 14
+#define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
 #define GPS_BAUD 9600
 #define GPS_ENABLE_PIN 32
@@ -34,8 +33,8 @@ class Device {
     public:
         Device();
         ~Device();
-        bool debug_mode = false;
-        bool gps_enabled = false;
+        bool debug_mode = true;
+        bool gps_enabled = true;
 
         bool ble_enabled = false;
         void enable_ble();
@@ -61,9 +60,7 @@ class Device {
         float get_voltage();
         int get_charge_state();
         uint32_t write_datalog_entry(String filename, String data);
-        //uint32_t _write_datalog_entry(fs::FS &fs, String filename, String data);
         uint64_t get_datalog_size(String filename);
-        //uint64_t _get_datalog_size(fs::FS &fs, String filename);
         float get_temperature();
         void transmit_state(environment_state state);
 

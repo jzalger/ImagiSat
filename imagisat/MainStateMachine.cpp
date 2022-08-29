@@ -23,7 +23,9 @@ environment_state state_buffer[STATE_BUFFER_SIZE];
 TaskHandle_t indicator_task_handle = NULL;
 TaskHandle_t update_data_buffer_task_handle = NULL;
 TaskHandle_t gps_update_task_handle = NULL;
-TaskHandle_t transmit_task_handle = NULL;
+TaskHandle_t transmit_task_handle = NULL;  // TODO: Refactor this
+// TODO: Rockblock transmit task? Does GPS update actually need a task ?
+// or will it be fine with the interrupt?
 
 MainStateMachine::MainStateMachine() {
 }
@@ -34,7 +36,6 @@ MainStateMachine::~MainStateMachine() {
 void MainStateMachine::setup() {
     int error = 0;
     device.log_info("Starting setup");
-    filename = "/data_" + String(millis()) + ".csv";
     error = device.device_setup();  
     if (error > 0) {
         state_handler = &MainStateMachine::error_state;
@@ -43,14 +44,14 @@ void MainStateMachine::setup() {
     debug_mode = device.debug_mode;
 
     // Initialize Tasks
-    xTaskCreate(
-        transmit_state_task,
-        "transmit_state_task",
-        4096,
-        NULL,
-        1,
-        &transmit_task_handle
-    );
+    // xTaskCreate(
+    //     transmit_state_task,
+    //     "transmit_state_task",
+    //     4096,
+    //     NULL,
+    //     1,
+    //     &transmit_task_handle
+    // );
     xTaskCreate(
         indicator_task,
         "indicator_task",
@@ -59,14 +60,14 @@ void MainStateMachine::setup() {
         1,
         &indicator_task_handle
     );
-    xTaskCreate(
-        update_data_buffer_task,
-        "update_data_buffer_task",
-        4096,
-        NULL,
-        1,
-        &update_data_buffer_task_handle
-    );
+    // xTaskCreate(
+    //     update_data_buffer_task,
+    //     "update_data_buffer_task",
+    //     4096,
+    //     NULL,
+    //     1,
+    //     &update_data_buffer_task_handle
+    // );
 
     device.log_info("Setup complete");
     if (debug_mode) {
@@ -82,8 +83,10 @@ void MainStateMachine::loop() {
     }
 }
 
+// ########################################################################
+// States
+// ###########################################################################
 void MainStateMachine::idle_state() {
-    device.log_info("Entered Idle State");
     INDICATOR_STATE = IDLE;
     device.ble_loop();
     update_main_state();
@@ -97,25 +100,34 @@ void MainStateMachine::test_state() {
 }
 
 void MainStateMachine::debug_state() {
+    // Enable additional functionality and logging
+    // TODO: This might not need to be a state, just a prefunction or check in the test state
     device.log_info("Debug state enabled");
     state_handler = &MainStateMachine::test_state;
 }
 
-// void MainStateMachine::surface_tracking_state() {
-//     //device.underwater(false);
-//     device.update_gps_location();
-//     std::tie(env_state.latitude, env_state.longitude, env_state.alititude, env_state.sats, gps_fix) = device.get_gps_location();
-//     env_state.time = millis();  // TODO: Fix with an actual time.
+void MainStateMachine::get_location_state() {
+    device.update_gps_location();
+    std::tie(env_state.latitude, env_state.longitude, env_state.alititude, env_state.sats, gps_fix) = device.get_gps_location();
+    env_state.time = millis();  // TODO: Fix with an actual time.
 
-//     //Manage LED Indicator
-//     if (gps_fix) {
-//         INDICATOR_STATE = GPS_LOCK;
-//     } else {
-//         INDICATOR_STATE = GPS_SEARCHING;
-//     }
-//     device.ble_loop();
-//     update_main_state();
-// }
+    //Manage LED Indicator
+    if (gps_fix) {
+        INDICATOR_STATE = GPS_LOCK;
+    } else {
+        INDICATOR_STATE = GPS_SEARCHING;
+    }
+    device.ble_loop();
+    update_main_state();
+}
+
+void MainStateMachine::wx_radio_listen_state() {
+
+}
+
+void MainStateMachine::sample_wx_state() {
+
+}
 
 void MainStateMachine::error_state() {
     INDICATOR_STATE = ERROR;
@@ -123,17 +135,17 @@ void MainStateMachine::error_state() {
     device.ble_loop();
 }
 
-void MainStateMachine::update_main_state() {
-    if (tracking == true) {
-        
-    } else {
-        state_handler = &MainStateMachine::error_state;
-    }
-}
-
 void MainStateMachine::update_health_state() {
     voltage = device.get_voltage();
     charge_state = device.get_charge_state();
+}
+
+void MainStateMachine::update_main_state() {
+    if (tracking == true) {
+        state_handler = &MainStateMachine::get_location_state;
+    } else {
+        state_handler = &MainStateMachine::error_state;
+    }
 }
 
 void update_state_buffer(environment_state state){
@@ -151,7 +163,7 @@ void update_state_buffer(environment_state state){
 }
 
 // ########################################################################
-// State Tasks
+// State Task Handlers
 // ###########################################################################
 void indicator_task(void *parameter){
     for (;;){
@@ -160,15 +172,15 @@ void indicator_task(void *parameter){
         case IDLE:
             break;
         case GPS_SEARCHING:
-            device.cycle_status_ring(100,100,0,50);
+            device.cycle_status_ring(100,100,0,30);
             break;
         case GPS_LOCK:
-            device.pulse_status_ring(0,200,0,50);
+            device.pulse_status_ring(0,200,0,30);
             break;
         case TEST:
             break;
         case ERROR:
-            device.pulse_status_ring(200,0,0,50);
+            device.pulse_status_ring(200,0,0,30);
         default:
             break;
         }

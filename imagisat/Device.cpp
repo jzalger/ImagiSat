@@ -24,10 +24,11 @@ Device::~Device() {
 uint16_t Device::device_setup() {
     int error = 0;
     log_info("Beginning device setup");
+
     //WiFi.mode(WIFI_OFF);
     pinMode(VOLTAGE_READ_PIN, INPUT);
     pinMode(DEBUG_PIN, INPUT);
-    debug_mode = digitalRead(DEBUG_PIN);
+    // debug_mode = digitalRead(DEBUG_PIN);
     hwd_serial.begin(9600);
     if (USB_SERIAL_ACTIVE){
       Serial.begin(115200);
@@ -51,13 +52,14 @@ uint16_t Device::device_setup() {
     }
     GPS.setAutoPVTcallback(&gps_data_callback);
     if (debug_mode){
-      //GPS.setNMEAOutputPort(hwd_serial);
+      GPS.setNMEAOutputPort(hwd_serial);
     }
     return error;
 }
  
 uint16_t Device::test() {
   // Return 0 if all tests passed
+  log_info("Running device test");
   int error = 0;
   error += _test_gps();
   error += _test_led_ui();
@@ -169,14 +171,8 @@ int Device::get_charge_state() {
 uint32_t Device::write_datalog_entry(String filename, String data) {
 }
 
-// uint32_t Device::_write_datalog_entry(fs::FS &fs, String filename, String data) {
-// }
-
 uint64_t Device::get_datalog_size(String filename) {
 }
-
-// uint64_t Device::_get_datalog_size(fs::FS &fs, String filename) {
-// }
 
 // Device Control
 void Device::enable_debug_mode() {
