@@ -34,14 +34,12 @@ MainStateMachine::~MainStateMachine() {
 
 void MainStateMachine::setup() {
     int error = 0;
-    device.log_info("Starting setup");
+    log_info("Starting setup");
     error = device.device_setup();  
     if (error > 0) {
         state_handler = &MainStateMachine::error_state;
         return;
     }
-    debug_mode = device.debug_mode;
-
     // Initialize Tasks
     // xTaskCreate(
     //     transmit_state_task,
@@ -68,7 +66,7 @@ void MainStateMachine::setup() {
     //     &update_data_buffer_task_handle
     // );
 
-    device.log_info("Setup complete");
+    log_info("Setup complete");
     if (debug_mode) {
         state_handler = &MainStateMachine::debug_state;
     } else {
@@ -93,17 +91,17 @@ void MainStateMachine::idle_state() {
 
 void MainStateMachine::test_state() {
     INDICATOR_STATE = TEST;
-    device.log_info("Entered test state");
+    log_info("Entered test state");
     update_health_state();
     device.test();
     state_handler = &MainStateMachine::idle_state;
-    device.log_info("Existing test state to Idle");
+    log_info("Exiting test state to Idle");
 }
 
 void MainStateMachine::debug_state() {
     // Enable additional functionality and logging
     // TODO: This might not need to be a state, just a prefunction or check in the test state
-    device.log_info("Debug state enabled");
+    log_info("Debug state enabled");
     state_handler = &MainStateMachine::test_state;
 }
 
@@ -127,7 +125,7 @@ void MainStateMachine::wx_radio_listen_state() {
 
 void MainStateMachine::error_state() {
     INDICATOR_STATE = ERROR;
-    device.log_error("Entered Error State");
+    log_error("Entered Error State");
     device.ble_loop();
 }
 

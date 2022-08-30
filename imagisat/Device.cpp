@@ -2,9 +2,13 @@
 
 #define USB_SERIAL_ACTIVE 1  // 1 for TRUE
 
-HardwareSerial hwd_serial(1);
+bool debug_mode = true;
+
+HardwareSerial rb_serial(1);
+
 SFE_UBLOX_GNSS GPS;
 UBX_NAV_PVT_data_t gps_data;
+
 Adafruit_NeoPixel ring = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 int pixel_counter = 0;
 int pixel_fade_counter = 0;
@@ -16,6 +20,8 @@ bool ble_device_connected = false;
 bool old_ble_device_connected = false;
 
 Adafruit_BME680 bme;
+SparkFun_AS3935 lightning(AS3935_ADDR);
+int lightning_value = 0;
 
 Device::Device() {
 }
@@ -29,7 +35,6 @@ uint16_t Device::device_setup() {
 
     //WiFi.mode(WIFI_OFF);
     pinMode(VOLTAGE_READ_PIN, INPUT);
-    hwd_serial.begin(9600);
     if (USB_SERIAL_ACTIVE){
       Serial.begin(115200);
     }
@@ -53,12 +58,22 @@ uint16_t Device::device_setup() {
         error += 1;
       }
       GPS.setAutoPVTcallback(&gps_data_callback);
-      if (debug_mode){
-        GPS.setNMEAOutputPort(hwd_serial);
+      if (debug_mode && USB_SERIAL_ACTIVE){
+        // GPS.setNMEAOutputPort(Serial);
       }
     }
-    bme680_setup();  
+    pinMode(AS3935_INT_PIN, INPUT);
+    if(!lightning.begin()){
+      log_error("AS3935 Lighning Sensor init failed");
+      error += 1;
+    } else {
+      attachInterrupt(AS3935_INT_PIN, lightning_detect_callback, RISING);
+      log_info("Completed lightning sensor init");
+    }
 
+    rb_serial.begin(9600);
+
+    bme680_setup();  
     return error;
 }
 
@@ -213,10 +228,25 @@ void Device::transmit_state(environment_state state) {
   String state_string = csv_string(state, millis());
   String s = "STATE:" + state_string;
   // TODO: Abstract this to easily switch between serial and bluetooth
-
-  hwd_serial.println(s);
   if (USB_SERIAL_ACTIVE){
     Serial.println(s);
+  }
+}
+
+void IRAM_ATTR lightning_detect_callback() {
+  lightning_value = lightning.readInterruptReg();
+  if (lightning_value == AS3935_NOISE_INT){
+    log_info("Lightning noise detected");
+    // lightning.setNoiseLevel(setNoiseLevel); to change noise level
+  } else if (lightning_value == AS3935_DISTURBER_INT) {
+    log_info("Lightning disturber detected");
+    // Too many disturbers? Uncomment the code below, a higher number means better
+    // disturber rejection.
+    // lightning.watchdogThreshold(threshVal);  
+  } else if (lightning_value == AS3935_LIGHTNING_INT) {
+    byte distance = lightning.distanceToStorm();
+    log_info("Lightning Detected!");
+    log_info(distance +  " km away");
   }
 }
 
@@ -340,32 +370,33 @@ uint16_t Device::_test_led_ui() {
 
 uint16_t Device::_test_bme(){
     if (!bme.begin()) {
-    log_error("Could not find a valid BME680 sensor, check wiring!");
+      log_error("Could not find a valid BME680 sensor, check wiring!");
+      return 1;
     } else {
       std::tuple <float, float, float, float, float> reading = get_wx_reading();
-      log_info("Temperature: " + String(std::get<0>(reading)) + " - Humidity: " + String(std::get<2>(reading)) + " - VOC: " + String(std::get<3>(reading)));
+      log_info("BME680 Test: Temperature: " + String(std::get<0>(reading)) + " - Humidity: " + String(std::get<2>(reading)) + " - VOC: " + String(std::get<3>(reading)));
+      return 0;
     }
 }
 
 // #####################################################################
-void Device::log_debug(String str){
+void log_debug(String str){
   if (debug_mode){
     _write_log("DEBUG", str);
   }
 }
-void Device::log_error(String str) {
+void log_error(String str) {
   _write_log("ERROR", str);
 }
-void Device::log_info(String str) {
+void log_info(String str) {
   _write_log("INFO", str);
 }
-void Device::log_warning(String str) {
+void log_warning(String str) {
   _write_log("WARNING", str);
 }
-void Device::_write_log(String level, String str) {
+void _write_log(String level, String str) {
     if (debug_mode){
       String s = level + ": " + str;
-      hwd_serial.println(s);
       if (USB_SERIAL_ACTIVE){
         Serial.println(s);
       }

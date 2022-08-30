@@ -15,6 +15,7 @@
 #include "communication.h"
 #include <IridiumSBD.h>
 #include "si4707.h"
+#include <SparkFun_AS3935.h>
 //#include "WiFi.h"
 
 #define PIXEL_COUNT 16
@@ -28,9 +29,14 @@
 #define MAX_BAT_VOLTAGE 4.2
 #define WB_RST_PIN 33
 #define SEALEVELPRESSURE_HPA (1013.25)
-
+#define AS3935_ADDR 0x03 
+#define AS3935_INT_PIN 27
+#define AS3935_LIGHTNING_INT 0x08
+#define AS3935_DISTURBER_INT 0x04
+#define AS3935_NOISE_INT 0x01
 
 void gps_data_callback(UBX_NAV_PVT_data_t ubxDataStruct);
+void IRAM_ATTR lightning_detect_callback();
 
 class Logger;
 
@@ -38,9 +44,8 @@ class Device {
     public:
         Device();
         ~Device();
-        bool debug_mode = true;
+        
         bool gps_enabled = true;
-
         bool ble_enabled = false;
         void enable_ble();
         void disable_ble();
@@ -54,16 +59,15 @@ class Device {
         void update_gps_location();
         void enable_gps();
         void disable_gps();
-        
-        byte init_si4707();
-
-        void bme680_setup();
-
         std::tuple <float, float, float, int, bool> get_gps_location();
         float get_latitude();
         float get_longitude();
         float get_altitude();
         uint8_t get_gps_fix_type();
+        
+        byte init_si4707();
+
+        void bme680_setup();
 
         std::tuple <float, int> get_battery_health();
         float get_voltage();
@@ -77,15 +81,17 @@ class Device {
         void cycle_status_ring(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness);
         void pulse_status_ring(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness);
 
-        void log_info(String str);
-        void log_debug(String str);
-        void log_warning(String str);
-        void log_error(String str);
-
     private:
         uint16_t _test_gps();
         uint16_t _test_led_ui();
         uint16_t _test_bme();
-        void _write_log(String level, String str);
-};      
+        
+};
+
+void log_info(String str);
+void log_debug(String str);
+void log_warning(String str);
+void log_error(String str);
+void _write_log(String level, String str);
+
 #endif
