@@ -34,6 +34,7 @@
 #define AS3935_LIGHTNING_INT 0x08
 #define AS3935_DISTURBER_INT 0x04
 #define AS3935_NOISE_INT 0x01
+#define IR_RING_PIN 21
 
 void gps_data_callback(UBX_NAV_PVT_data_t ubxDataStruct);
 void IRAM_ATTR lightning_detect_callback();
@@ -47,6 +48,9 @@ class Device {
         
         bool gps_enabled = true;
         bool ble_enabled = false;
+        bool iridium_enabled = true;
+        bool iridium_diagnostics = false;
+        int iridium_signal_quality = -1;
         void enable_ble();
         void disable_ble();
         void ble_setup();
@@ -69,6 +73,8 @@ class Device {
 
         void bme680_setup();
 
+        void iridium_setup();
+
         std::tuple <float, int> get_battery_health();
         float get_voltage();
         int get_charge_state();
@@ -85,6 +91,7 @@ class Device {
         uint16_t _test_gps();
         uint16_t _test_led_ui();
         uint16_t _test_bme();
+        uint16_t _test_iridium();
         
 };
 

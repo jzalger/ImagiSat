@@ -13,6 +13,9 @@ enum Indicator_State_t {
     IDLE,
     GPS_SEARCHING,
     GPS_LOCK,
+    IRIDIUM_SEND,
+    IRIDIUM_REC,
+    WX_BAND_REC,
     TEST,
     ERROR
 };

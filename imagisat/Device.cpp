@@ -4,7 +4,8 @@
 
 bool debug_mode = true;
 
-HardwareSerial rb_serial(1);
+HardwareSerial iridium_serial(1);
+IridiumSBD iridium_modem(iridium_serial, -1, IR_RING_PIN);
 
 SFE_UBLOX_GNSS GPS;
 UBX_NAV_PVT_data_t gps_data;
@@ -70,14 +71,21 @@ uint16_t Device::device_setup() {
       attachInterrupt(AS3935_INT_PIN, lightning_detect_callback, RISING);
       log_info("Completed lightning sensor init");
     }
-
-    rb_serial.begin(9600);
-
+    iridium_setup();
     bme680_setup();  
     return error;
 }
 
-
+void Device::iridium_setup(){
+  iridium_serial.begin(19200);
+  iridium_modem.setPowerProfile(IridiumSBD::USB_POWER_PROFILE);
+  if (debug_mode){
+    iridium_diagnostics = true;
+  }
+  if (iridium_modem.begin() != ISBD_SUCCESS){
+    log_error("Could not connect to Iridium modem");
+  }
+}
 
 uint16_t Device::test() {
   // Return 0 if all tests passed
@@ -86,6 +94,7 @@ uint16_t Device::test() {
   error += _test_gps();
   error += _test_led_ui();
   error += _test_bme();
+  error += _test_iridium();
   return error;
 }
 
@@ -377,6 +386,17 @@ uint16_t Device::_test_bme(){
       log_info("BME680 Test: Temperature: " + String(std::get<0>(reading)) + " - Humidity: " + String(std::get<2>(reading)) + " - VOC: " + String(std::get<3>(reading)));
       return 0;
     }
+}
+
+uint16_t Device::_test_iridium(){
+  int error = iridium_modem.getSignalQuality(iridium_signal_quality);
+  if (error != 0){
+    log_warning("Could not get Iridium Signal Quality");
+    return 1;
+  } else {
+    log_info("Iridium signal quality: " + String(iridium_signal_quality));
+    return 0;
+  }
 }
 
 // #####################################################################
