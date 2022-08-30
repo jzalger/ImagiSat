@@ -2,6 +2,7 @@
 #define __DEVICE_H
 #include <Wire.h>
 #include <SPI.h>
+#include "Arduino.h"
 #include "types.h"
 #include <Adafruit_Sensor.h>
 #include <Adafruit_NeoPixel.h>
@@ -12,9 +13,9 @@
 #include "freertos/task.h"
 #include "communication.h"
 #include <IridiumSBD.h>
+#include "si4707.h"
 //#include "WiFi.h"
 
-#define DEBUG_PIN 21
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
@@ -24,6 +25,7 @@
 #define DEBUG_SERIAL_RX 15
 #define VOLTAGE_READ_PIN A13
 #define MAX_BAT_VOLTAGE 4.2
+#define WB_RST_PIN 33
 
 void gps_data_callback(UBX_NAV_PVT_data_t ubxDataStruct);
 
@@ -50,6 +52,8 @@ class Device {
         void enable_gps();
         void disable_gps();
         
+        byte init_si4707();
+
         std::tuple <float, float, float, int, bool> get_gps_location();
         float get_latitude();
         float get_longitude();

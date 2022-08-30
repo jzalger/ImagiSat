@@ -27,8 +27,6 @@ uint16_t Device::device_setup() {
 
     //WiFi.mode(WIFI_OFF);
     pinMode(VOLTAGE_READ_PIN, INPUT);
-    pinMode(DEBUG_PIN, INPUT);
-    // debug_mode = digitalRead(DEBUG_PIN);
     hwd_serial.begin(9600);
     if (USB_SERIAL_ACTIVE){
       Serial.begin(115200);
@@ -45,18 +43,32 @@ uint16_t Device::device_setup() {
       log_info("Completed BLE Setup");
     }
     pinMode(GPS_ENABLE_PIN, OUTPUT);
-    enable_gps(); // Turn on GPS by default
-    if (!GPS.begin()){
-      log_error("GPS init failed");
-      error += 1;
-    }
-    GPS.setAutoPVTcallback(&gps_data_callback);
-    if (debug_mode){
-      GPS.setNMEAOutputPort(hwd_serial);
+    if (gps_enabled) {
+      enable_gps();
+      if (!GPS.begin()){
+        log_error("GPS init failed");
+        error += 1;
+      }
+      GPS.setAutoPVTcallback(&gps_data_callback);
+      if (debug_mode){
+        GPS.setNMEAOutputPort(hwd_serial);
+      }
     }
     return error;
 }
- 
+
+byte init_si4707()
+{
+  // Set initial pin value: RST (Active-low reset)
+  pinMode(WB_RST_PIN, OUTPUT);  // Reset
+  digitalWrite(WB_RST_PIN, LOW);  // Keep the SI4707 in reset
+  delay(1);  // Short delay before we take reset up
+  digitalWrite(WB_RST_PIN, HIGH);
+  delay(1);  // Give Si4707 a little time to reset
+  wb::powerUp();
+  return wb::command_Get_Rev(1); // Ideally returns 7
+}
+
 uint16_t Device::test() {
   // Return 0 if all tests passed
   log_info("Running device test");

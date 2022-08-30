@@ -23,9 +23,8 @@ environment_state state_buffer[STATE_BUFFER_SIZE];
 TaskHandle_t indicator_task_handle = NULL;
 TaskHandle_t update_data_buffer_task_handle = NULL;
 TaskHandle_t gps_update_task_handle = NULL;
-TaskHandle_t transmit_task_handle = NULL;  // TODO: Refactor this
-// TODO: Rockblock transmit task? Does GPS update actually need a task ?
-// or will it be fine with the interrupt?
+TaskHandle_t transmit_task_handle = NULL;  // TODO: Refactor this - legacy BT thing
+// TODO: Rockblock transmit or receieve task?
 
 MainStateMachine::MainStateMachine() {
 }
