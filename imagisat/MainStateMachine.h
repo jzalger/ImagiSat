@@ -34,7 +34,6 @@ protected:
     void get_location_state();
     void update_main_state();
     void update_health_state();
-    void sample_wx_state();
     void wx_radio_listen_state();
 
     unsigned long state_time;

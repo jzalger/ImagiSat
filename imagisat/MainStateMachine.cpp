@@ -95,7 +95,9 @@ void MainStateMachine::test_state() {
     INDICATOR_STATE = TEST;
     device.log_info("Entered test state");
     update_health_state();
+    device.test();
     state_handler = &MainStateMachine::idle_state;
+    device.log_info("Existing test state to Idle");
 }
 
 void MainStateMachine::debug_state() {
@@ -121,11 +123,6 @@ void MainStateMachine::get_location_state() {
 }
 
 void MainStateMachine::wx_radio_listen_state() {
-
-}
-
-void MainStateMachine::sample_wx_state() {
-
 }
 
 void MainStateMachine::error_state() {

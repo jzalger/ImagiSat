@@ -5,6 +5,7 @@
 #include "Arduino.h"
 #include "types.h"
 #include <Adafruit_Sensor.h>
+#include <Adafruit_BME680.h>
 #include <Adafruit_NeoPixel.h>
 #include <SparkFun_u-blox_GNSS_Arduino_Library.h>
 #include <u-blox_config_keys.h>
@@ -26,6 +27,8 @@
 #define VOLTAGE_READ_PIN A13
 #define MAX_BAT_VOLTAGE 4.2
 #define WB_RST_PIN 33
+#define SEALEVELPRESSURE_HPA (1013.25)
+
 
 void gps_data_callback(UBX_NAV_PVT_data_t ubxDataStruct);
 
@@ -54,6 +57,8 @@ class Device {
         
         byte init_si4707();
 
+        void bme680_setup();
+
         std::tuple <float, float, float, int, bool> get_gps_location();
         float get_latitude();
         float get_longitude();
@@ -65,7 +70,7 @@ class Device {
         int get_charge_state();
         uint32_t write_datalog_entry(String filename, String data);
         uint64_t get_datalog_size(String filename);
-        float get_temperature();
+        std::tuple <float, float, float, float, float> get_wx_reading();
         void transmit_state(environment_state state);
 
         // Status Ring Functions
@@ -80,6 +85,7 @@ class Device {
     private:
         uint16_t _test_gps();
         uint16_t _test_led_ui();
+        uint16_t _test_bme();
         void _write_log(String level, String str);
 };      
 #endif

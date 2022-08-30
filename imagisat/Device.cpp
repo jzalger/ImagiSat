@@ -15,6 +15,8 @@ BLECharacteristic * pTxCharacteristic;
 bool ble_device_connected = false;
 bool old_ble_device_connected = false;
 
+Adafruit_BME680 bme;
+
 Device::Device() {
 }
 
@@ -42,6 +44,7 @@ uint16_t Device::device_setup() {
       ble_setup();
       log_info("Completed BLE Setup");
     }
+
     pinMode(GPS_ENABLE_PIN, OUTPUT);
     if (gps_enabled) {
       enable_gps();
@@ -54,20 +57,12 @@ uint16_t Device::device_setup() {
         GPS.setNMEAOutputPort(hwd_serial);
       }
     }
+    bme680_setup();  
+
     return error;
 }
 
-byte init_si4707()
-{
-  // Set initial pin value: RST (Active-low reset)
-  pinMode(WB_RST_PIN, OUTPUT);  // Reset
-  digitalWrite(WB_RST_PIN, LOW);  // Keep the SI4707 in reset
-  delay(1);  // Short delay before we take reset up
-  digitalWrite(WB_RST_PIN, HIGH);
-  delay(1);  // Give Si4707 a little time to reset
-  wb::powerUp();
-  return wb::command_Get_Rev(1); // Ideally returns 7
-}
+
 
 uint16_t Device::test() {
   // Return 0 if all tests passed
@@ -75,6 +70,7 @@ uint16_t Device::test() {
   int error = 0;
   error += _test_gps();
   error += _test_led_ui();
+  error += _test_bme();
   return error;
 }
 
@@ -160,8 +156,8 @@ float Device::get_longitude(){
 float Device::get_altitude(){
   return GPS.getAltitude();
 }
-float Device::get_temperature(){
-    return 0;
+std::tuple <float, float, float, float, float> Device::get_wx_reading(){
+  return std::make_tuple(bme.temperature, bme.pressure, bme.humidity, bme.gas_resistance, bme.readAltitude(SEALEVELPRESSURE_HPA));
 }
 
 std::tuple <float, int> Device::get_battery_health() {
@@ -222,6 +218,28 @@ void Device::transmit_state(environment_state state) {
   if (USB_SERIAL_ACTIVE){
     Serial.println(s);
   }
+}
+
+void Device::bme680_setup() {
+  // Set up oversampling and filter initialization
+  bme.setTemperatureOversampling(BME680_OS_8X);
+  bme.setHumidityOversampling(BME680_OS_2X);
+  bme.setPressureOversampling(BME680_OS_4X);
+  bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
+  bme.setGasHeater(320, 150); // 320*C for 150 ms
+}
+
+
+byte Device::init_si4707()
+{
+  // Set initial pin value: RST (Active-low reset)
+  pinMode(WB_RST_PIN, OUTPUT);  // Reset
+  digitalWrite(WB_RST_PIN, LOW);  // Keep the SI4707 in reset
+  delay(1);  // Short delay before we take reset up
+  digitalWrite(WB_RST_PIN, HIGH);
+  delay(1);  // Give Si4707 a little time to reset
+  wb::powerUp();
+  return wb::command_Get_Rev(1); // Ideally returns 7
 }
 
 // #####################################################################
@@ -310,6 +328,26 @@ void Device::ble_loop() {
 }
 
 // #####################################################################
+// Device Test Methods
+// #####################################################################
+uint16_t Device::_test_gps(){
+  return 0;
+}
+
+uint16_t Device::_test_led_ui() {
+  return 0;
+}
+
+uint16_t Device::_test_bme(){
+    if (!bme.begin()) {
+    log_error("Could not find a valid BME680 sensor, check wiring!");
+    } else {
+      std::tuple <float, float, float, float, float> reading = get_wx_reading();
+      log_info("Temperature: " + String(std::get<0>(reading)) + " - Humidity: " + String(std::get<2>(reading)) + " - VOC: " + String(std::get<3>(reading)));
+    }
+}
+
+// #####################################################################
 void Device::log_debug(String str){
   if (debug_mode){
     _write_log("DEBUG", str);
@@ -334,13 +372,3 @@ void Device::_write_log(String level, String str) {
     }
 }
 
-// #####################################################################
-// Device Test Methods
-// #####################################################################
-uint16_t Device::_test_gps(){
-  return 0;
-}
-
-uint16_t Device::_test_led_ui() {
-  return 0;
-}
