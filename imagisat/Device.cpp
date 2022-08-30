@@ -91,8 +91,8 @@ uint16_t Device::test() {
   // Return 0 if all tests passed
   log_info("Running device test");
   int error = 0;
+  error += _test_device_health();
   error += _test_gps();
-  error += _test_led_ui();
   error += _test_bme();
   error += _test_iridium();
   return error;
@@ -266,6 +266,9 @@ void Device::bme680_setup() {
   bme.setPressureOversampling(BME680_OS_4X);
   bme.setIIRFilterSize(BME680_FILTER_SIZE_3);
   bme.setGasHeater(320, 150); // 320*C for 150 ms
+  if (!bme.begin()) {
+      log_error("Could not find a valid BME680 sensor, check wiring!");
+  }
 }
 
 
@@ -373,19 +376,10 @@ uint16_t Device::_test_gps(){
   return 0;
 }
 
-uint16_t Device::_test_led_ui() {
-  return 0;
-}
-
 uint16_t Device::_test_bme(){
-    if (!bme.begin()) {
-      log_error("Could not find a valid BME680 sensor, check wiring!");
-      return 1;
-    } else {
-      std::tuple <float, float, float, float, float> reading = get_wx_reading();
-      log_info("BME680 Test: Temperature: " + String(std::get<0>(reading)) + " - Humidity: " + String(std::get<2>(reading)) + " - VOC: " + String(std::get<3>(reading)));
-      return 0;
-    }
+    std::tuple <float, float, float, float, float> reading = get_wx_reading();
+    log_info("BME680 Test: Temperature: " + String(std::get<0>(reading)) + " - Humidity: " + String(std::get<2>(reading)) + " - VOC: " + String(std::get<3>(reading)));
+    return 0;
 }
 
 uint16_t Device::_test_iridium(){
@@ -397,6 +391,14 @@ uint16_t Device::_test_iridium(){
     log_info("Iridium signal quality: " + String(iridium_signal_quality));
     return 0;
   }
+}
+
+uint16_t Device::_test_device_health(){
+  float voltage = get_voltage();
+  int charge = get_charge_state();
+  // Return an error code if charge too low.
+  log_info("Device voltage: " + String(voltage) + " - Device charge state: " + String(charge));
+  return 0;
 }
 
 // #####################################################################

@@ -89,9 +89,9 @@ class Device {
 
     private:
         uint16_t _test_gps();
-        uint16_t _test_led_ui();
         uint16_t _test_bme();
         uint16_t _test_iridium();
+        uint16_t _test_device_health();
         
 };
 

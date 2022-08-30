@@ -67,11 +67,7 @@ void MainStateMachine::setup() {
     // );
 
     log_info("Setup complete");
-    if (debug_mode) {
-        state_handler = &MainStateMachine::debug_state;
-    } else {
-        state_handler = &MainStateMachine::test_state;
-    }   
+    state_handler = &MainStateMachine::test_state;
 }
 
 void MainStateMachine::loop() {
@@ -93,16 +89,13 @@ void MainStateMachine::test_state() {
     INDICATOR_STATE = TEST;
     log_info("Entered test state");
     update_health_state();
-    device.test();
-    state_handler = &MainStateMachine::idle_state;
-    log_info("Exiting test state to Idle");
-}
-
-void MainStateMachine::debug_state() {
-    // Enable additional functionality and logging
-    // TODO: This might not need to be a state, just a prefunction or check in the test state
-    log_info("Debug state enabled");
-    state_handler = &MainStateMachine::test_state;
+    int error = device.test();
+    if (error == 0){
+        state_handler = &MainStateMachine::idle_state;
+        log_info("Exiting test state to Idle");
+    } else {
+        state_handler = &MainStateMachine::error_state;
+    }
 }
 
 void MainStateMachine::get_location_state() {
@@ -120,7 +113,15 @@ void MainStateMachine::get_location_state() {
     update_main_state();
 }
 
-void MainStateMachine::wx_radio_listen_state() {
+void MainStateMachine::wb_receive_state() {
+}
+
+void MainStateMachine::iridium_receive_state(){
+
+}
+
+void MainStateMachine::iridium_send_receive_state(){
+
 }
 
 void MainStateMachine::error_state() {
@@ -166,15 +167,37 @@ void indicator_task(void *parameter){
         case IDLE:
             break;
         case GPS_SEARCHING:
+            // Cycle Yellow
             device.cycle_status_ring(100,100,0,30);
             break;
         case GPS_LOCK:
-            device.pulse_status_ring(0,200,0,30);
+            // Pulse Green
+            device.pulse_status_ring(0,100,0,30);
             break;
         case TEST:
+            // Cycle white
+            device.cycle_status_ring(100,100,100,30);
             break;
         case ERROR:
-            device.pulse_status_ring(200,0,0,30);
+            // Pulse orange
+            device.pulse_status_ring(100,50,0,30);
+            break;
+        case IRIDIUM_SENDING:
+            //Cycle Blue
+            device.cycle_status_ring(0,0,100,30);
+            break;
+        case IRIDIUM_SENT:
+            // Pulse Blue
+            device.pulse_status_ring(0,0,100,30);
+            break;
+        case IRIDIUM_RECEIVED:
+            // Pulse Magenta
+            device.pulse_status_ring(100,0,100,30);
+            break;
+        case WX_ALERT:
+            // Pulse red
+            device.pulse_status_ring(100,0,0,30);
+            break;
         default:
             break;
         }

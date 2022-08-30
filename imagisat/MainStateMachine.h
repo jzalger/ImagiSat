@@ -13,9 +13,10 @@ enum Indicator_State_t {
     IDLE,
     GPS_SEARCHING,
     GPS_LOCK,
-    IRIDIUM_SEND,
-    IRIDIUM_REC,
-    WX_BAND_REC,
+    IRIDIUM_SENDING,
+    IRIDIUM_SENT,
+    IRIDIUM_RECEIVED,
+    WX_ALERT,
     TEST,
     ERROR
 };
@@ -32,12 +33,13 @@ protected:
     // State handlers
     void idle_state();
     void test_state();
-    void debug_state();
     void error_state();
     void get_location_state();
     void update_main_state();
     void update_health_state();
-    void wx_radio_listen_state();
+    void wb_receive_state();
+    void iridium_send_receive_state();
+    void iridium_receive_state();
 
     unsigned long state_time;
 	std::function<void(MainStateMachine&)> state_handler = 0;  
