@@ -25,7 +25,8 @@ Si4707_system_functions contains the nitty gritty system
 //////////////////////////////
 #include "si4707.h"
 #include <Wire.h>
-#define SI4707_ADDRESS 0b1100011
+#define SI4707_ADDRESS 0x11
+//#define SI4707_ADDRESS 0b1100011
 
 
 

@@ -71,6 +71,7 @@ uint16_t Device::device_setup() {
       attachInterrupt(AS3935_INT_PIN, lightning_detect_callback, RISING);
       log_info("Completed lightning sensor init");
     }
+    //init_si4707();
     iridium_setup();
     bme680_setup();  
     return error;
@@ -161,11 +162,16 @@ uint8_t Device::get_gps_fix_type(){
   return GPS.getFixType();
 }
 
-std::tuple <float, float, float, int, bool> Device::get_gps_location() {
-  bool _gps_fix = false;
+bool get_gps_fix(){
+  bool gps_fix = false;
   if (gps_data.numSV > 0){
-    _gps_fix = true;
+    gps_fix = true;
   }
+  return gps_fix;
+}
+
+std::tuple <float, float, float, int, bool> Device::get_gps_location() {
+  bool _gps_fix = get_gps_fix();
   return std::make_tuple(gps_data.lat, gps_data.lon, gps_data.height, gps_data.numSV, _gps_fix);
 }
 
@@ -190,7 +196,7 @@ std::tuple <float, int> Device::get_battery_health() {
 
 // Battery Functions
 float Device::get_voltage() {
-  float voltage = analogRead(VOLTAGE_READ_PIN); 
+  float voltage = analogRead(VOLTAGE_READ_PIN)/1024; 
   return voltage * 2;  // Voltage is read via a 1/2 divider
 }
 
@@ -281,6 +287,7 @@ byte Device::init_si4707()
   digitalWrite(WB_RST_PIN, HIGH);
   delay(1);  // Give Si4707 a little time to reset
   wb::powerUp();
+  log_debug("Completed powerup sequence");
   return wb::command_Get_Rev(1); // Ideally returns 7
 }
 

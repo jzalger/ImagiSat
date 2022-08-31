@@ -9,6 +9,10 @@ struct environment_state {
     float alititude;
     int sats = 0;
     float temperature = 0.0;
+    float pressure = 0.0;
+    float humidity = 0.0;
+    float voc = 0.0;
+    float p_alt = 0.0;
 };
 
 class Data {
