@@ -24,7 +24,10 @@ Adafruit_BME680 bme;
 SparkFun_AS3935 lightning(AS3935_ADDR);
 int lightning_value = 0;
 
+
+
 Device::Device() {
+  Display display;
 }
 
 Device::~Device() { 
@@ -72,8 +75,9 @@ uint16_t Device::device_setup() {
       log_info("Completed lightning sensor init");
     }
     //init_si4707();
-    iridium_setup();
-    bme680_setup();  
+    //iridium_setup();
+    bme680_setup();
+    display.setup();  
     return error;
 }
 
@@ -95,7 +99,7 @@ uint16_t Device::test() {
   error += _test_device_health();
   error += _test_gps();
   error += _test_bme();
-  error += _test_iridium();
+  //error += _test_iridium();
   return error;
 }
 

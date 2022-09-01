@@ -21,6 +21,18 @@ enum Indicator_State_t {
     ERROR
 };
 
+enum States_t {
+    IDLE_STATE,
+    TEST_STATE,
+    ERROR_STATE,
+    UPDATE_LOCATION_STATE,
+    UPDATE_HEALTH_STATE,
+    WB_RECEIVE_STATE,
+    SAMPLE_WX_CONDITION_STATE,
+    IRIDIUM_SEND_RECEIVE_STATE,
+    IRIDIUM_RECEIVE_STATE
+};
+
 class MainStateMachine {
 public:
     MainStateMachine();
@@ -42,8 +54,7 @@ protected:
     void iridium_receive_state();
 
     unsigned long state_time;
-	std::function<void(MainStateMachine&)> state_handler = 0;  
-
+	std::function<void(MainStateMachine&)> state_handler = 0;
 
     double voltage = 0.0;
     int charge_state = 0;

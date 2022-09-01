@@ -16,6 +16,7 @@
 #include <IridiumSBD.h>
 #include "si4707.h"
 #include <SparkFun_AS3935.h>
+#include "epd.h"
 //#include "WiFi.h"
 
 #define PIXEL_COUNT 16
@@ -43,7 +44,8 @@ class Device {
     public:
         Device();
         ~Device();
-        
+        Display display;
+
         bool gps_enabled = true;
         bool ble_enabled = false;
         bool iridium_enabled = true;

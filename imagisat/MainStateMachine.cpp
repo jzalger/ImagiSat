@@ -13,6 +13,8 @@ Device device;
 environment_state env_state;
 
 Indicator_State_t INDICATOR_STATE = IDLE;
+States_t current_state = IDLE_STATE;
+States_t last_state = IDLE_STATE;
 
 int error = 0;
 bool wb_rec_enabled = false;
@@ -66,11 +68,17 @@ void MainStateMachine::loop() {
 // ###########################################################################
 void MainStateMachine::idle_state() {
     INDICATOR_STATE = IDLE;
+    current_state = IDLE_STATE;
+    if (current_state != last_state){
+        device.display.idle_ui();
+    }
+    last_state = IDLE_STATE;
     update_main_state();
 }
 
 void MainStateMachine::test_state() {
     INDICATOR_STATE = TEST;
+    current_state = TEST_STATE;
     log_info("Entered test state");
     update_health_state();
     int error = device.test();
@@ -81,9 +89,11 @@ void MainStateMachine::test_state() {
         log_error("Exiting test state to ERROR");
         state_handler = &MainStateMachine::error_state;
     }
+    last_state = TEST_STATE;
 }
 
 void MainStateMachine::update_location_state(){
+    current_state = UPDATE_LOCATION_STATE;
     device.update_gps_location();
     std::tie(env_state.latitude, env_state.longitude, env_state.alititude, env_state.sats, gps_fix) = device.get_gps_location();
     env_state.time = millis();  // TODO: Fix with an actual time.
@@ -94,36 +104,50 @@ void MainStateMachine::update_location_state(){
     } else {
         INDICATOR_STATE = GPS_SEARCHING;
     }
+
+    last_state = UPDATE_LOCATION_STATE;
     update_main_state();
 }
 
 void MainStateMachine::sample_wx_condition_state(){
+    current_state = SAMPLE_WX_CONDITION_STATE;
     std::tie(env_state.temperature, env_state.pressure, env_state.humidity, env_state.voc, env_state.p_alt) = device.get_wx_reading();
+    last_state = SAMPLE_WX_CONDITION_STATE;
     update_main_state();
 }
 
 void MainStateMachine::wb_receive_state() {
+    current_state = WB_RECEIVE_STATE;
+    last_state = WB_RECEIVE_STATE;
     update_main_state();
 }
 
 void MainStateMachine::iridium_receive_state(){
+    current_state = IRIDIUM_RECEIVE_STATE;
+    last_state = IRIDIUM_RECEIVE_STATE;
     update_main_state();
 }
 
 void MainStateMachine::iridium_send_receive_state(){
+    current_state = IRIDIUM_SEND_RECEIVE_STATE;
+    last_state = IRIDIUM_SEND_RECEIVE_STATE;
     update_main_state();
 }
 
 void MainStateMachine::error_state() {
     INDICATOR_STATE = ERROR;
+    current_state = ERROR_STATE;
     log_error("Entered Error State");
+    last_state = ERROR_STATE;
     update_main_state();
 }
 
 void MainStateMachine::update_health_state() {
     // Maybe move this to a task ?
+    current_state = UPDATE_HEALTH_STATE;
     voltage = device.get_voltage();
     charge_state = device.get_charge_state();
+    last_state = UPDATE_HEALTH_STATE;
     update_main_state();
 }
 
