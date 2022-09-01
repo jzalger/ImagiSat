@@ -1,5 +1,6 @@
 #include <Adafruit_GFX.h>    // Core graphics library
 #include "Adafruit_EPD.h"
+#include "types.h"
 
 #define EPD_CS     A5
 #define EPD_DC      A1
@@ -13,8 +14,10 @@ class Display {
         virtual ~Display();
         uint16_t setup();
 
-        void idle_ui();
+        void test_ui();
+        void status_ui(environment_state env_state, DeviceState device_state);
         void wb_rec_ui();
-        void wx_history_ui();
-        void forecast_ui();
+        void wx_history_ui(environment_state[12] samples);
+        void forecast_ui(Forecast[12] forecast);
+        void alert_ui(Alert alert);
 };

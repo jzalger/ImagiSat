@@ -15,6 +15,51 @@ struct environment_state {
     float p_alt = 0.0;
 };
 
+struct DeviceState {
+    float voltage = 0;
+    int charge_state = 0;
+    int n_messages = 0;
+    int alerts = 0;
+    uint64_t last_message_time = 0;
+    uint64_t last_gps_lock_time = 0;
+    int errors = 0;
+};
+
+struct Forecast {
+    int time;
+    float latitude;
+    float longitude;
+    float altitude;
+    float temperature;
+    float humidity;
+    float pressure;
+    float pop;
+    float cape;
+    float cloud_cover;
+    float sfc_wind_mag;
+    char sfc_wind_dir;
+    String condition;
+};
+
+enum AlertType {
+    LIGHTNING_ALERT,
+    SEVERE_WEATHER_ALERT
+};
+
+enum AlertSource {
+    WB_ALERT,
+    ON_DEVICE_ALERT,
+    IRIDIUM_ALERT
+};
+
+
+struct Alert {
+    AlertType type;
+    AlertSource source;
+    String message;
+};
+
+
 class Data {
     public:
         int time;
