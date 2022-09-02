@@ -27,8 +27,13 @@ int lightning_value = 0;
 // Display Object
 Adafruit_IL0373 _display(296, 128, EPD_DC, EPD_RESET, EPD_CS, SRAM_CS, EPD_BUSY);
 
+
+// ###############################################################################
+// Device Class
+// ###############################################################################
+
 Device::Device() {
-  Display display;
+  UIStateMachine ui;
 }
 
 Device::~Device() { 
@@ -37,8 +42,6 @@ Device::~Device() {
 uint16_t Device::device_setup() {
     int error = 0;
     log_info("Beginning device setup");
-
-    //WiFi.mode(WIFI_OFF);
     pinMode(VOLTAGE_READ_PIN, INPUT);
     if (USB_SERIAL_ACTIVE){
       Serial.begin(115200);
@@ -78,7 +81,7 @@ uint16_t Device::device_setup() {
     //init_si4707();
     //iridium_setup();
     bme680_setup();
-    display.setup();  
+    ui.setup();  
     return error;
 }
 
@@ -102,56 +105,6 @@ uint16_t Device::test() {
   error += _test_bme();
   //error += _test_iridium();
   return error;
-}
-
-// #####################################################################
-// DEVICE FUNCTIONS
-// #####################################################################
-void Device::cycle_status_ring(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness) {
-    //ring.setBrightness(brightness);
-    for(int i = 0; i < PIXEL_COUNT; i ++) {
-        if(i != pixel_counter)
-            ring.setPixelColor(PIXEL_COUNT-i, 0, 0, 0);         
-        else
-            ring.setPixelColor(PIXEL_COUNT-i, red, green, blue);  
-    }
-    pixel_counter ++;
-    if(pixel_counter >= PIXEL_COUNT){
-        pixel_counter =  0;
-    }
-    ring.show();
-    vTaskDelay(30);    
-}
-void Device::pulse_status_ring(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness) {
-  int tmpR, tmpG, tmpB;
-  int steps = 50;
-  int pause = 30;
-
-  // Fade up
-  for (int s=1; s<=steps; s++) {
-    tmpR = (red * s) / steps;     
-    tmpG = (green * s) / steps;
-    tmpB = (blue * s) / steps;
-
-    for (int i=0; i < PIXEL_COUNT; i++) {
-      ring.setPixelColor(i,tmpR,tmpG,tmpB);
-    }
-    ring.show();
-    vTaskDelay(pause);
-  }    
-
-  // Fade down
-  for (int s=steps; s>0; s--) {
-    tmpR = (red * s) / steps;     
-    tmpG = (green * s) / steps;
-    tmpB = (blue * s) / steps;
-
-    for (int i=0; i < PIXEL_COUNT; i++) {
-      ring.setPixelColor(i,tmpR,tmpG,tmpB);
-    }
-    ring.show();
-    vTaskDelay(pause);
-  }    
 }
 
 void gps_data_callback(UBX_NAV_PVT_data_t ubxDataStruct){
@@ -217,7 +170,6 @@ uint32_t Device::write_datalog_entry(String filename, String data) {
 uint64_t Device::get_datalog_size(String filename) {
 }
 
-// Device Control
 void Device::enable_debug_mode() {
 }
 
@@ -381,9 +333,8 @@ void Device::ble_loop() {
   }
 }
 
-// #####################################################################
+// ###############################################################################
 // Device Test Methods
-// #####################################################################
 uint16_t Device::_test_gps(){
   return 0;
 }
@@ -413,22 +364,30 @@ uint16_t Device::_test_device_health(){
   return 0;
 }
 
-// #####################################################################
+// ###############################################################################
+// UI State Machine
+// ###############################################################################
 
 UIStateMachine::UIStateMachine() {
-
+  Display display;
+  HapticDevice haptic;
+  Indicator indicator;
 }
 
 UIStateMachine::~UIStateMachine() {
 
 }
 
+void UIStateMachine::setup(){
+  display.setup();
+}
+
 void UIStateMachine::test_ui_state(){
 
 }
 
-void UIStateMachine::status_ui_state(Device *device, environment_state env_state, DeviceState device_state) {
-
+void UIStateMachine::status_ui_state(environment_state env_state, DeviceState device_state) {
+  display.status_ui(env_state, device_state);
 }
 
 void UIStateMachine::wb_rec_ui_state(){
@@ -447,7 +406,52 @@ void UIStateMachine::alert_ui_state(Alert alert){
 
 }
 
-//##########################################################################
+void UIStateMachine::update_indicator_state(Indicator_State_t state){
+  switch (state) {
+    case IDLE:
+        // Pulse white
+        // indicator.pulse(50,50,50,30);
+        break;
+    case GPS_SEARCHING:
+        // Cycle green
+        indicator.cycle(0,100,0,30);
+        break;
+    case GPS_LOCK:
+        // Pulse Green
+        indicator.pulse(0,100,0,30);
+        break;
+    case TEST:
+        // Cycle white
+        indicator.cycle(100,100,100,30);
+        break;
+    case ERROR:
+        // Pulse orange
+        indicator.pulse(100,50,0,30);
+        break;
+    case IRIDIUM_SENDING:
+        //Cycle Blue
+        indicator.cycle(0,0,100,30);
+        break;
+    case IRIDIUM_SENT:
+        // Pulse Blue
+        indicator.pulse(0,0,100,30);
+        break;
+    case IRIDIUM_RECEIVED:
+        // Pulse Magenta
+        indicator.pulse(100,0,100,30);
+        break;
+    case WX_ALERT:
+        // Pulse red
+        indicator.pulse(100,0,0,30);
+        break;
+    default:
+        break;
+    }
+}
+
+// ###############################################################################
+// Display
+// ###############################################################################
 
 Display::Display() {   
 }
@@ -458,21 +462,44 @@ Display::~Display() {
 uint16_t Display::setup(){
     _display.begin();
     _display.clearBuffer();
+    _display.setRotation(1);
+    _display.setFont(&FreeSans9pt7b);
     _display.fillScreen(EPD_WHITE);
+    _display.setTextWrap(true);
     return 0;
 }
 
 void Display::status_ui(environment_state env_state, DeviceState device_state){
+  char health_text[30];
+  char location_text[40];
+  char wx_text[64];
+  _display.clearBuffer();
+  _display.setCursor(1,15);
 
+  _display.setTextColor(EPD_RED);
+  _display.print("Health\n");
+  _display.setTextColor(EPD_BLACK);
+  sprintf(health_text, "Voltage: %.1f\nCharge %d\n", device_state.voltage, device_state.charge_state);
+  _display.print(health_text);
+  
+  _display.setTextColor(EPD_RED);
+  _display.print("GPS\n");
+  _display.setTextColor(EPD_BLACK);
+  sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n", env_state.sats, env_state.latitude, env_state.longitude);
+  _display.print(location_text);
+
+  _display.setTextColor(EPD_RED);
+  _display.print("Conditions\n");
+  _display.setTextColor(EPD_BLACK);
+  sprintf(wx_text,"Temp: %.1f\nRh: %.1f\nPres: %.3f\nVOC: %.1f", env_state.temperature, env_state.humidity, env_state.pressure, env_state.voc);
+  _display.print(wx_text);
+  _display.display();
 }
 
 void Display::test_ui(){
   _display.clearBuffer();
-  _display.setCursor(5, 5);
-  _display.setTextSize(2);
   _display.setTextColor(EPD_RED);
-  _display.setTextWrap(true);
-  const char *text = "Welcome to ImagiSat. A meterologist in your pocket.";
+  const char *text = "Welcome to ImagiSat.\nA meterologist in your pocket.";
   _display.print(text);
   _display.display();
 }
@@ -493,8 +520,9 @@ void Display::wb_rec_ui(){
 
 }
 
-//##########################################################################
-
+// ###############################################################################
+// Haptic Device
+// ###############################################################################
 
 HapticDevice::HapticDevice(){
 
@@ -514,6 +542,64 @@ void HapticDevice::notice(int pin){
 
 void HapticDevice::tap(int pin){
 
+}
+
+// ###############################################################################
+// Indicator
+// ###############################################################################
+Indicator::Indicator(){
+
+}
+
+Indicator::~Indicator(){
+
+}
+
+void Indicator::pulse(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness){
+  int tmpR, tmpG, tmpB;
+  int steps = 50;
+  int pause = 30;
+
+  // Fade up
+  for (int s=1; s<=steps; s++) {
+    tmpR = (red * s) / steps;     
+    tmpG = (green * s) / steps;
+    tmpB = (blue * s) / steps;
+
+    for (int i=0; i < PIXEL_COUNT; i++) {
+      ring.setPixelColor(i,tmpR,tmpG,tmpB);
+    }
+    ring.show();
+    vTaskDelay(pause);
+  }    
+
+  // Fade down
+  for (int s=steps; s>0; s--) {
+    tmpR = (red * s) / steps;     
+    tmpG = (green * s) / steps;
+    tmpB = (blue * s) / steps;
+
+    for (int i=0; i < PIXEL_COUNT; i++) {
+      ring.setPixelColor(i,tmpR,tmpG,tmpB);
+    }
+    ring.show();
+    vTaskDelay(pause);
+  }    
+}
+
+void Indicator::cycle(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness){
+    for(int i = 0; i < PIXEL_COUNT; i ++) {
+        if(i != pixel_counter)
+            ring.setPixelColor(PIXEL_COUNT-i, 0, 0, 0);         
+        else
+            ring.setPixelColor(PIXEL_COUNT-i, red, green, blue);  
+    }
+    pixel_counter ++;
+    if(pixel_counter >= PIXEL_COUNT){
+        pixel_counter =  0;
+    }
+    ring.show();
+    vTaskDelay(30);    
 }
 
 

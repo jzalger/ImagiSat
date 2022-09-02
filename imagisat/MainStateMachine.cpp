@@ -8,6 +8,7 @@ uint32_t gps_update_interval = 30000;
 uint64_t last_data_buffer_update = millis();
 uint64_t last_state_transmit = millis();
 uint64_t last_position_update = 0;
+uint64_t last_wx_sample = 0;
 
 Device device;
 environment_state env_state;
@@ -71,7 +72,7 @@ void MainStateMachine::idle_state() {
     INDICATOR_STATE = IDLE;
     current_state = IDLE_STATE;
     if (current_state != last_state){
-        device.display.status_ui(env_state, device_state);
+        device.ui.status_ui_state(env_state, device_state);
     }
     last_state = IDLE_STATE;
     update_main_state();
@@ -84,9 +85,8 @@ void MainStateMachine::test_state() {
     update_health_state();
     int error = device.test();
     if (error == 0){
-        state_handler = &MainStateMachine::idle_state;
-        // device.display.test_ui();
-        log_info("Exiting test state to Idle");
+        update_main_state();
+        log_info("Exiting test state");
     } else {
         log_error("Exiting test state to ERROR");
         device_state.errors = 1;
@@ -117,13 +117,14 @@ void MainStateMachine::sample_wx_condition_state(){
     current_state = SAMPLE_WX_CONDITION_STATE;
     std::tie(env_state.temperature, env_state.pressure, env_state.humidity, env_state.voc, env_state.p_alt) = device.get_wx_reading();
     last_state = SAMPLE_WX_CONDITION_STATE;
+    last_wx_sample = millis();
     update_main_state();
 }
 
 void MainStateMachine::wb_receive_state() {
     current_state = WB_RECEIVE_STATE;
     if (current_state != last_state){
-        device.display.wb_rec_ui();
+        device.ui.wb_rec_ui_state();
     }
     last_state = WB_RECEIVE_STATE;
     update_main_state();
@@ -164,6 +165,8 @@ void MainStateMachine::update_main_state() {
     device.ble_loop();
     if (wb_rec_enabled == true) {
         state_handler = &MainStateMachine::wb_receive_state;
+    } else if (millis()- last_wx_sample >wx_sampling_interval) {
+        state_handler = &MainStateMachine::sample_wx_condition_state;
     } else if (gps_fix == false || millis()-last_position_update > gps_update_interval){
         state_handler = &MainStateMachine::update_location_state;
     } else if (error > 1) {
@@ -192,47 +195,7 @@ void update_state_buffer(environment_state state){
 // ###########################################################################
 void indicator_task(void *parameter){
     for (;;){
-        switch (INDICATOR_STATE)
-        {
-        case IDLE:
-            // Pulse white
-            // device.pulse_status_ring(50,50,50,30);
-            break;
-        case GPS_SEARCHING:
-            // Cycle green
-            device.cycle_status_ring(0,100,0,30);
-            break;
-        case GPS_LOCK:
-            // Pulse Green
-            device.pulse_status_ring(0,100,0,30);
-            break;
-        case TEST:
-            // Cycle white
-            device.cycle_status_ring(100,100,100,30);
-            break;
-        case ERROR:
-            // Pulse orange
-            device.pulse_status_ring(100,50,0,30);
-            break;
-        case IRIDIUM_SENDING:
-            //Cycle Blue
-            device.cycle_status_ring(0,0,100,30);
-            break;
-        case IRIDIUM_SENT:
-            // Pulse Blue
-            device.pulse_status_ring(0,0,100,30);
-            break;
-        case IRIDIUM_RECEIVED:
-            // Pulse Magenta
-            device.pulse_status_ring(100,0,100,30);
-            break;
-        case WX_ALERT:
-            // Pulse red
-            device.pulse_status_ring(100,0,0,30);
-            break;
-        default:
-            break;
-        }
+        device.ui.update_indicator_state(INDICATOR_STATE);
         vTaskDelay(10);
     }
 }

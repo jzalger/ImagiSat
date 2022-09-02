@@ -18,6 +18,7 @@
 #include <SparkFun_AS3935.h>
 #include <Adafruit_GFX.h>    // Core graphics library
 #include "Adafruit_EPD.h"
+#include <Fonts/FreeSans9pt7b.h>
 //#include "WiFi.h"
 
 #define PIXEL_COUNT 16
@@ -72,11 +73,49 @@ class Display {
         void alert_ui(Alert alert);
 };
 
+class HapticDevice {
+    public:
+        HapticDevice();
+        virtual ~HapticDevice();
+
+        void tap(int pin);
+        void notice(int pin);
+        void alert(int pin);
+};
+
+class Indicator {
+    public:
+        Indicator();
+        virtual ~Indicator();
+
+        void pulse(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness);
+        void cycle(uint16_t red, uint16_t green, uint16_t blue, uint16_t brightness);
+};
+
+class UIStateMachine {
+    public:
+        UIStateMachine();
+        ~UIStateMachine();
+
+        Display display;
+        HapticDevice haptic;
+        Indicator indicator;
+
+        void setup();
+        void test_ui_state();
+        void status_ui_state(environment_state env_state, DeviceState device_state);
+        void wb_rec_ui_state();
+        void wx_history_ui_state(environment_state samples[12]);
+        void forecast_ui_state(Forecast forecast[12]);
+        void alert_ui_state(Alert alert);
+        void update_indicator_state(Indicator_State_t state);
+};
+
 class Device {
     public:
         Device();
         ~Device();
-        Display display;
+        UIStateMachine ui;
 
         bool gps_enabled = true;
         bool ble_enabled = false;
@@ -126,31 +165,6 @@ class Device {
         uint16_t _test_device_health();
         
 };
-
-class UIStateMachine {
-    public:
-        UIStateMachine();
-        ~UIStateMachine();
-
-        void test_ui_state();
-        void status_ui_state(Device *device, environment_state env_state, DeviceState device_state);
-        void wb_rec_ui_state();
-        void wx_history_ui_state(environment_state samples[12]);
-        void forecast_ui_state(Forecast forecast[12]);
-        void alert_ui_state(Alert alert);
-};
-
-class HapticDevice {
-    public:
-        HapticDevice();
-        virtual ~HapticDevice();
-
-        void tap(int pin);
-        void notice(int pin);
-        void alert(int pin);
-};
-
-
 
 void log_info(String str);
 void log_debug(String str);
