@@ -11,6 +11,7 @@ uint64_t last_position_update = 0;
 
 Device device;
 environment_state env_state;
+DeviceState device_state;
 
 Indicator_State_t INDICATOR_STATE = IDLE;
 States_t current_state = IDLE_STATE;
@@ -70,7 +71,7 @@ void MainStateMachine::idle_state() {
     INDICATOR_STATE = IDLE;
     current_state = IDLE_STATE;
     if (current_state != last_state){
-        device.display.idle_ui();
+        device.display.status_ui(env_state, device_state);
     }
     last_state = IDLE_STATE;
     update_main_state();
@@ -87,6 +88,7 @@ void MainStateMachine::test_state() {
         log_info("Exiting test state to Idle");
     } else {
         log_error("Exiting test state to ERROR");
+        device_state.errors = 1;
         state_handler = &MainStateMachine::error_state;
     }
     last_state = TEST_STATE;
@@ -101,6 +103,7 @@ void MainStateMachine::update_location_state(){
     //Manage LED Indicator
     if (gps_fix) {
         INDICATOR_STATE = GPS_LOCK;
+        device_state.last_gps_lock_time = millis();
     } else {
         INDICATOR_STATE = GPS_SEARCHING;
     }
@@ -147,19 +150,22 @@ void MainStateMachine::update_health_state() {
     current_state = UPDATE_HEALTH_STATE;
     voltage = device.get_voltage();
     charge_state = device.get_charge_state();
+    device_state.charge_state = charge_state;
+    device_state.voltage = voltage;
     last_state = UPDATE_HEALTH_STATE;
     update_main_state();
 }
 
 void MainStateMachine::update_main_state() {
     device.ble_loop();
-    state_handler = &MainStateMachine::idle_state;
     if (wb_rec_enabled == true) {
         state_handler = &MainStateMachine::wb_receive_state;
     } else if (gps_fix == false || millis()-last_position_update > gps_update_interval){
         state_handler = &MainStateMachine::update_location_state;
     } else if (error > 1) {
         state_handler = &MainStateMachine::error_state;
+    } else {
+        state_handler = &MainStateMachine::idle_state;
     }
 }
 

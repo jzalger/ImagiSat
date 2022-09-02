@@ -17,7 +17,7 @@ class Display {
         void test_ui();
         void status_ui(environment_state env_state, DeviceState device_state);
         void wb_rec_ui();
-        void wx_history_ui(environment_state[12] samples);
-        void forecast_ui(Forecast[12] forecast);
+        void wx_history_ui(environment_state samples[12]);
+        void forecast_ui(Forecast forecast[12]);
         void alert_ui(Alert alert);
 };

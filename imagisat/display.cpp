@@ -33,11 +33,11 @@ void Display::alert_ui(Alert alert){
 
 }
 
-void Display::forecast_ui(Forecast[12] forecast){
+void Display::forecast_ui(Forecast forecast[12]){
 
 }
 
-void Display::wx_history_ui(environment_state[12] samples) {
+void Display::wx_history_ui(environment_state samples[12]) {
 
 }
 
