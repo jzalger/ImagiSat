@@ -1,4 +1,4 @@
-name: Build2
+name: Build
 on:
   - push
   - pull_request
@@ -23,12 +23,12 @@ jobs:
           sketch-paths: |
             - imagisat
           libraries: | 
-            - name: Adafruit_Sensor
+            - name: Adafruit_GFX
             - name: Adafruit_BME680
+            - name: Adafruit_NeoPixel
             - name: SparkFun_u-blox_GNSS_Arduino_Library
             - name: IridiumSBD
             - name: SoarkFun_AS3935
-            - name: Adafruit_GFX
             - name: Adafruit_EPD
           cli-compile-flags: |
             - --warnings="none"
