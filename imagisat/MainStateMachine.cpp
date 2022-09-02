@@ -85,6 +85,7 @@ void MainStateMachine::test_state() {
     int error = device.test();
     if (error == 0){
         state_handler = &MainStateMachine::idle_state;
+        // device.display.test_ui();
         log_info("Exiting test state to Idle");
     } else {
         log_error("Exiting test state to ERROR");
@@ -121,6 +122,9 @@ void MainStateMachine::sample_wx_condition_state(){
 
 void MainStateMachine::wb_receive_state() {
     current_state = WB_RECEIVE_STATE;
+    if (current_state != last_state){
+        device.display.wb_rec_ui();
+    }
     last_state = WB_RECEIVE_STATE;
     update_main_state();
 }

@@ -16,7 +16,7 @@
 #include <IridiumSBD.h>
 #include "si4707.h"
 #include <SparkFun_AS3935.h>
-#include "display.h"
+#include "ui.h"
 //#include "WiFi.h"
 
 #define PIXEL_COUNT 16

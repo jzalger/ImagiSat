@@ -1,4 +1,4 @@
-#include "display.h"
+#include "ui.h"
 
 Adafruit_IL0373 _display(296, 128, EPD_DC, EPD_RESET, EPD_CS, SRAM_CS, EPD_BUSY);
 
@@ -42,5 +42,62 @@ void Display::wx_history_ui(environment_state samples[12]) {
 }
 
 void Display::wb_rec_ui(){
+
+}
+
+//##########################################################################
+
+UIStateMachine::UIStateMachine() {
+
+}
+
+UIStateMachine::~UIStateMachine() {
+
+}
+
+void UIStateMachine::test_ui_state(){
+
+}
+
+void UIStateMachine::status_ui_state(environment_state env_state, DeviceState device_state) {
+
+}
+
+void UIStateMachine::wb_rec_ui_state(){
+
+}
+
+void UIStateMachine::wx_history_ui_state(environment_state samples[12]){
+
+}
+
+void UIStateMachine::forecast_ui_state(Forecast forecast[12]){
+
+}
+
+void UIStateMachine::alert_ui_state(Alert alert){
+
+}
+
+//##########################################################################
+
+
+HapticDevice::HapticDevice(){
+
+}
+
+HapticDevice::~HapticDevice(){
+
+}
+
+void HapticDevice::alert(int pin){
+
+}
+
+void HapticDevice::notice(int pin){
+
+}
+
+void HapticDevice::tap(int pin){
 
 }

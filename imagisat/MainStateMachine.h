@@ -9,17 +9,6 @@
 #include "freertos/timers.h"
 #include "freertos/event_groups.h"
 
-enum Indicator_State_t {
-    IDLE,
-    GPS_SEARCHING,
-    GPS_LOCK,
-    IRIDIUM_SENDING,
-    IRIDIUM_SENT,
-    IRIDIUM_RECEIVED,
-    WX_ALERT,
-    TEST,
-    ERROR
-};
 
 enum States_t {
     IDLE_STATE,
