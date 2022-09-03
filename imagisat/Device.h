@@ -17,7 +17,7 @@
 #include "si4707.h"
 #include <SparkFun_AS3935.h>
 #include <Adafruit_GFX.h>    // Core graphics library
-#include "Adafruit_EPD.h"
+#include <Adafruit_SharpMem.h>
 #include <Fonts/FreeSans9pt7b.h>
 //#include "WiFi.h"
 
@@ -36,11 +36,11 @@
 #define AS3935_DISTURBER_INT 0x04
 #define AS3935_NOISE_INT 0x01
 #define IR_RING_PIN 21
-#define EPD_CS     A5
-#define EPD_DC      A1
-#define SRAM_CS     -1
-#define EPD_RESET   A0 
-#define EPD_BUSY    32 
+#define DISPLAY_SS A5
+#define DISPLAY_SCK 5 
+#define DISPLAY_MOSI 18
+#define BLACK 0
+#define WHITE 1
 
 enum Indicator_State_t {
     IDLE,
@@ -64,10 +64,11 @@ class Display {
         Display();
         virtual ~Display();
         uint16_t setup();
-
+        void refresh();
         void test_ui();
         void status_ui(environment_state env_state, DeviceState device_state);
         void wb_rec_ui();
+        void gps_searching_ui();
         void wx_history_ui(environment_state samples[12]);
         void forecast_ui(Forecast forecast[12]);
         void alert_ui(Alert alert);
@@ -102,6 +103,8 @@ class UIStateMachine {
         Indicator indicator;
 
         void setup();
+        void refresh();
+        void gps_searching_state();
         void test_ui_state();
         void status_ui_state(environment_state env_state, DeviceState device_state);
         void wb_rec_ui_state();

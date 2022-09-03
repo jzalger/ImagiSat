@@ -25,8 +25,7 @@ SparkFun_AS3935 lightning(AS3935_ADDR);
 int lightning_value = 0;
 
 // Display Object
-Adafruit_IL0373 _display(296, 128, EPD_DC, EPD_RESET, EPD_CS, SRAM_CS, EPD_BUSY);
-
+Adafruit_SharpMem _display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS, 400, 240);
 
 // ###############################################################################
 // Device Class
@@ -383,7 +382,7 @@ void UIStateMachine::setup(){
 }
 
 void UIStateMachine::test_ui_state(){
-
+  display.test_ui();
 }
 
 void UIStateMachine::status_ui_state(environment_state env_state, DeviceState device_state) {
@@ -392,6 +391,10 @@ void UIStateMachine::status_ui_state(environment_state env_state, DeviceState de
 
 void UIStateMachine::wb_rec_ui_state(){
 
+}
+
+void UIStateMachine::gps_searching_state(){
+  display.gps_searching_ui();
 }
 
 void UIStateMachine::wx_history_ui_state(environment_state samples[12]){
@@ -404,6 +407,10 @@ void UIStateMachine::forecast_ui_state(Forecast forecast[12]){
 
 void UIStateMachine::alert_ui_state(Alert alert){
 
+}
+
+void UIStateMachine::refresh(){
+  display.refresh();
 }
 
 void UIStateMachine::update_indicator_state(Indicator_State_t state){
@@ -461,47 +468,53 @@ Display::~Display() {
 
 uint16_t Display::setup(){
     _display.begin();
-    _display.clearBuffer();
     _display.setRotation(1);
     _display.setFont(&FreeSans9pt7b);
-    _display.fillScreen(EPD_WHITE);
     _display.setTextWrap(true);
+    _display.setTextColor(BLACK);
     return 0;
+}
+
+void Display::refresh(){
+  _display.refresh();
 }
 
 void Display::status_ui(environment_state env_state, DeviceState device_state){
   char health_text[30];
   char location_text[40];
   char wx_text[64];
-  _display.clearBuffer();
-  _display.setCursor(1,15);
 
-  _display.setTextColor(EPD_RED);
+  _display.clearDisplay();
+  _display.setCursor(1,15);
   _display.print("Health\n");
-  _display.setTextColor(EPD_BLACK);
-  sprintf(health_text, "Voltage: %.1f\nCharge %d\n", device_state.voltage, device_state.charge_state);
+  sprintf(health_text, "Voltage: %.1f\nCharge %d\n\n", device_state.voltage, device_state.charge_state);
   _display.print(health_text);
   
-  _display.setTextColor(EPD_RED);
   _display.print("GPS\n");
-  _display.setTextColor(EPD_BLACK);
-  sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n", env_state.sats, env_state.latitude, env_state.longitude);
+  sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n\n", env_state.sats, env_state.latitude, env_state.longitude);
   _display.print(location_text);
 
-  _display.setTextColor(EPD_RED);
   _display.print("Conditions\n");
-  _display.setTextColor(EPD_BLACK);
-  sprintf(wx_text,"Temp: %.1f\nRh: %.1f\nPres: %.3f\nVOC: %.1f", env_state.temperature, env_state.humidity, env_state.pressure, env_state.voc);
+  sprintf(wx_text,"Temp: %.1f C\nRh: %.1f %%\nPres: %.3f kPa\nVOC: %.1f", env_state.temperature, env_state.humidity, env_state.pressure/1000.0, env_state.voc);
   _display.print(wx_text);
-  _display.display();
+  _display.refresh();
 }
 
 void Display::test_ui(){
-  _display.clearBuffer();
-  _display.setTextColor(EPD_RED);
-  const char *text = "Welcome to ImagiSat.\nA meterologist in your pocket.";
-  _display.print(text);
-  _display.display();
+  _display.setCursor(1,200);
+  _display.clearDisplay();
+  _display.setTextSize(2);
+  _display.println("ImagiSat");
+  _display.setTextSize(1);
+  _display.println("A meterologist in your pocket");
+  _display.refresh();
+}
+
+void Display::gps_searching_ui(){
+  _display.setCursor(1,200);
+  _display.clearDisplay();
+  _display.println("Searching for GPS Fix");
+  _display.refresh();
 }
 
 void Display::alert_ui(Alert alert){
