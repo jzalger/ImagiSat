@@ -28,9 +28,7 @@ jobs:
       run: pio pkg install --global
 
     - name: Run PlatformIO build
-      run: pio ci --lib="." --lib="lib/si4707.h" --project-conf=platformio.ini -e featheresp32
-      env:
-        PLATFORMIO_CI_SRC: ${{ matrix.runs }}
+      run: pio ci --lib="." --project-conf=platformio.ini -e featheresp32
 
     - name: Code static analysis
       run: pio check
