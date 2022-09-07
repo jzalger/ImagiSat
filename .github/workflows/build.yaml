@@ -28,7 +28,7 @@ jobs:
       run: pio pkg install --global
 
     - name: Run PlatformIO build
-      run: pio ci --project-conf -e featheresp32
+      run: pio ci --project-conf=platformio.ini -e featheresp32
       env:
         PLATFORMIO_CI_SRC: ${{ matrix.runs }}
 
