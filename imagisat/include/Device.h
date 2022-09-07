@@ -14,7 +14,7 @@
 #include "freertos/task.h"
 #include "communication.h"
 #include <IridiumSBD.h>
-#include "si4707.h"
+#include <si4707.h>
 #include <SparkFun_AS3935.h>
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_SharpMem.h>
