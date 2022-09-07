@@ -4,7 +4,7 @@ on:
   - pull_request
 
 jobs:
-  build:
+  build-analyze:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,9 +21,6 @@ jobs:
 
     - name: Install PlatformIO Core
       run: pip install --upgrade platformio
-
-    - name: Install Project Dependencies
-      run: pio pkg install --global
 
     - name: Run PlatformIO build
       run: pio ci --lib="lib/si4707/si4707.h" --lib="include" --project-conf=platformio.ini -e featheresp32 src/imagisat.ino
