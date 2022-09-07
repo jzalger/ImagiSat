@@ -1,5 +1,5 @@
 {
-    "sketch": "imagisat/imagisat.ino",
+    "sketch": "src/imagisat.ino",
     "output": "build",
     "configuration": "FlashFreq=80,UploadSpeed=921600,DebugLevel=none,PartitionScheme=default",
     "board": "esp32:esp32:featheresp32",
