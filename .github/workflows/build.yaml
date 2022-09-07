@@ -1,5 +1,4 @@
-name: PIO-Build
-
+name: build
 on:
   - push
   - pull_request
