@@ -164,9 +164,11 @@ int Device::get_charge_state() {
 }
 
 uint32_t Device::write_datalog_entry(String filename, String data) {
+  return 0;
 }
 
 uint64_t Device::get_datalog_size(String filename) {
+  return 0;
 }
 
 void Device::enable_debug_mode() {
