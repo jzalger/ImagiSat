@@ -6,9 +6,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        runs: [src/imagisat.ino, test]
+
     steps:
     - uses: actions/checkout@v3
     - uses: actions/cache@v3
@@ -28,7 +26,7 @@ jobs:
       run: pio pkg install --global
 
     - name: Run PlatformIO build
-      run: pio ci --lib="." --project-conf=platformio.ini -e featheresp32
+      run: pio ci --lib="lib" --lib="include" --project-conf=platformio.ini -e featheresp32 src/imagisat.ino
 
     - name: Code static analysis
       run: pio check
