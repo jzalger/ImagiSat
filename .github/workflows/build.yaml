@@ -23,7 +23,7 @@ jobs:
       run: pip install --upgrade platformio
 
     - name: Run PlatformIO build
-      run: pio ci --lib="lib/si4707/si4707.h" --lib="include" --project-conf=platformio.ini -e featheresp32 src/imagisat.ino
+      run: pio ci --lib="lib/si4707/si4707.h" --lib="include" --project-conf=platformio.ini -e featheresp32 src/imagisat.ino lib include
 
     - name: Code static analysis
       run: pio check
