@@ -20,16 +20,17 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.9'
+
     - name: Install PlatformIO Core
       run: pip install --upgrade platformio
 
+    - name: Install Project Dependencies
+      run: pio pkg install --global
+
     - name: Run PlatformIO build
-      run: |
-       pio upgrade
-       pio pkg install --global
-       pio ci --lib="." --board=featheresp32
+      run: pio ci --project-conf -e featheresp32
       env:
         PLATFORMIO_CI_SRC: ${{ matrix.runs }}
 
     - name: Code static analysis
-      run: platformio check
+      run: pio check
