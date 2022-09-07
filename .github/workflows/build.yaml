@@ -26,7 +26,7 @@ jobs:
     - name: Run PlatformIO build
       run: |
        pio upgrade
-       pio pkg update
+       pio pkg install --global
        pio ci --lib="." --board=featheresp32
       env:
         PLATFORMIO_CI_SRC: ${{ matrix.runs }}
