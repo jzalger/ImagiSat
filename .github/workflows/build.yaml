@@ -7,7 +7,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        runs: [imagisat/test, imagisat/src/imagisat.ino]
     steps:
     - uses: actions/checkout@v2
 
@@ -19,7 +21,9 @@ jobs:
         python -m pip install --upgrade pip
         pip install platformio
     - name: Run PlatformIO build on selected platforms
-      run: platformio run -e espressif32
+      run: pio ci --board=featheresp32
+      env:
+        PLATFORMIO_CI_SRC: ${{ matrix.runs }}
 
-    - name: Code static analysis
-      run: platformio check
+    # - name: Code static analysis
+    #   run: platformio check
