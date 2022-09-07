@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        runs: [imagisat/test, imagisat/src/imagisat.ino]
+        runs: [test, src/imagisat.ino]
     steps:
     - uses: actions/checkout@v2
 
