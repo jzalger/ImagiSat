@@ -3,7 +3,7 @@
 
 #include "Arduino.h"  // Required for byte type
 
-const byte POWER_UP_TIME_MS = 1000;
+const unsigned int POWER_UP_TIME_MS = 1000;
 
 // Command Bytes
 const byte COMMAND_POWER_UP        = 0x01;  // Powerup

@@ -24,6 +24,7 @@
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
+#define HAPTIC_DEVICE_PIN 99
 #define GPS_BAUD 9600
 #define GPS_ENABLE_PIN 32
 #define VOLTAGE_READ_PIN A13
@@ -69,9 +70,9 @@ class Display {
         void status_ui(environment_state env_state, DeviceState device_state);
         void wb_rec_ui();
         void gps_searching_ui();
-        void wx_history_ui(environment_state samples[12]);
-        void forecast_ui(Forecast forecast[12]);
+        void forecast_ui(environment_state samples[12], Forecast forecast[12]);
         void alert_ui(Alert alert);
+        void iridium_msg_ui();
 };
 
 class HapticDevice {
@@ -79,9 +80,12 @@ class HapticDevice {
         HapticDevice();
         virtual ~HapticDevice();
 
-        void tap(int pin);
-        void notice(int pin);
-        void alert(int pin);
+        void setup();
+        void tap();
+        void notice();
+        void alert();
+    private:
+        void vibrate(int milliseconds);
 };
 
 class Indicator {
@@ -108,10 +112,10 @@ class UIStateMachine {
         void test_ui_state();
         void status_ui_state(environment_state env_state, DeviceState device_state);
         void wb_rec_ui_state();
-        void wx_history_ui_state(environment_state samples[12]);
-        void forecast_ui_state(Forecast forecast[12]);
+        void forecast_ui_state(environment_state samples[12], Forecast forecast[12]);
         void alert_ui_state(Alert alert);
         void update_indicator_state(Indicator_State_t state);
+        void iridium_msg_ui_state();
 };
 
 class Device {

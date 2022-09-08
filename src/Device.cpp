@@ -381,10 +381,12 @@ UIStateMachine::~UIStateMachine() {
 
 void UIStateMachine::setup(){
   display.setup();
+  //haptic.setup(); TODO: Remove when hardware is implemented
 }
 
 void UIStateMachine::test_ui_state(){
   display.test_ui();
+  haptic.notice();
 }
 
 void UIStateMachine::status_ui_state(environment_state env_state, DeviceState device_state) {
@@ -392,23 +394,24 @@ void UIStateMachine::status_ui_state(environment_state env_state, DeviceState de
 }
 
 void UIStateMachine::wb_rec_ui_state(){
-
+  display.wb_rec_ui();
 }
 
 void UIStateMachine::gps_searching_state(){
   display.gps_searching_ui();
 }
 
-void UIStateMachine::wx_history_ui_state(environment_state samples[12]){
-
+void UIStateMachine::forecast_ui_state(environment_state samples[12], Forecast forecast[12]){
+  display.forecast_ui(samples, forecast);
 }
 
-void UIStateMachine::forecast_ui_state(Forecast forecast[12]){
-
+void UIStateMachine::iridium_msg_ui_state(){
+  
 }
 
 void UIStateMachine::alert_ui_state(Alert alert){
-
+  haptic.alert();
+  display.alert_ui(alert);
 }
 
 void UIStateMachine::refresh(){
@@ -523,15 +526,15 @@ void Display::alert_ui(Alert alert){
 
 }
 
-void Display::forecast_ui(Forecast forecast[12]){
+void Display::forecast_ui(environment_state samples[12], Forecast forecast[12]) {
 
 }
 
-void Display::wx_history_ui(environment_state samples[12]) {
+void Display::wb_rec_ui() {
 
 }
 
-void Display::wb_rec_ui(){
+void Display::iridium_msg_ui(){
 
 }
 
@@ -547,16 +550,30 @@ HapticDevice::~HapticDevice(){
 
 }
 
-void HapticDevice::alert(int pin){
-
+void HapticDevice::setup(){
+  pinMode(HAPTIC_DEVICE_PIN, OUTPUT);
 }
 
-void HapticDevice::notice(int pin){
-
+void HapticDevice::vibrate(int milliseconds) {
+  digitalWrite(HAPTIC_DEVICE_PIN, HIGH);
+  vTaskDelay(milliseconds);
+  digitalWrite(HAPTIC_DEVICE_PIN, LOW);
 }
 
-void HapticDevice::tap(int pin){
+void HapticDevice::alert(){
+  vibrate(2000);
+  vTaskDelay(1000);
+  vibrate(2000);
+}
 
+void HapticDevice::notice(){
+  vibrate(1000);
+  vTaskDelay(1000);
+  vibrate(1000);
+}
+
+void HapticDevice::tap(){
+  vibrate(100);
 }
 
 // ###############################################################################
