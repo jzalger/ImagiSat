@@ -523,7 +523,19 @@ void Display::gps_searching_ui(){
 }
 
 void Display::alert_ui(Alert alert){
-
+  _display.setCursor(100,150);
+  _display.setTextSize(2);
+  switch (alert.type){
+    case LIGHTNING_ALERT:
+        _display.println("LIGHTNING");
+        break;
+    case SEVERE_WEATHER_ALERT:
+        _display.println("SEVERE WEATHER");
+        break;
+  }
+  _display.setTextSize(3);
+  _display.println("ALERT");
+  _display.refresh();
 }
 
 void Display::forecast_ui(environment_state samples[12], Forecast forecast[12]) {
@@ -531,7 +543,7 @@ void Display::forecast_ui(environment_state samples[12], Forecast forecast[12]) 
 }
 
 void Display::wb_rec_ui() {
-
+    
 }
 
 void Display::iridium_msg_ui(){
