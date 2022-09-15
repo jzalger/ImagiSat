@@ -131,13 +131,13 @@ void MainStateMachine::sample_wx_condition_state(){
 }
 
 void MainStateMachine::wb_receive_state() {
-    current_state = WB_RECEIVE_STATE;
-    if (current_state != last_state || millis() - last_display_update > min_display_update_interval){
-        device.ui.wb_rec_ui_state();
-        last_display_update = millis();
-    }
-    last_state = WB_RECEIVE_STATE;
-    update_main_state();
+    // current_state = WB_RECEIVE_STATE;
+    // if (current_state != last_state || millis() - last_display_update > min_display_update_interval){
+    //     device.ui.wb_rec_ui_state();
+    //     last_display_update = millis();
+    // }
+    // last_state = WB_RECEIVE_STATE;
+    // update_main_state();
 }
 
 void MainStateMachine::iridium_receive_state(){
@@ -174,6 +174,7 @@ void MainStateMachine::update_health_state() {
 void MainStateMachine::update_main_state() {
     device.ble_loop();
     if (wb_rec_enabled == true) {
+        //FIXME: Needs to be driven by the UI state
         state_handler = &MainStateMachine::wb_receive_state;
     } else if (millis()- last_wx_sample > wx_sampling_interval) {
         state_handler = &MainStateMachine::sample_wx_condition_state;

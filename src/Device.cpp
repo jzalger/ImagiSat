@@ -418,6 +418,10 @@ void UIStateMachine::refresh(){
   display.refresh();
 }
 
+void UIStateMachine::update_ui_state(){
+  
+}
+
 void UIStateMachine::update_indicator_state(Indicator_State_t state){
   switch (state) {
     case IDLE:

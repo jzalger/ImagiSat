@@ -116,6 +116,7 @@ class UIStateMachine {
         void alert_ui_state(Alert alert);
         void update_indicator_state(Indicator_State_t state);
         void iridium_msg_ui_state();
+        void update_ui_state();
 };
 
 class Device {
