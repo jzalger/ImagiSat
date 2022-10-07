@@ -24,8 +24,9 @@ Adafruit_BME680 bme;
 SparkFun_AS3935 lightning(AS3935_ADDR);
 int lightning_value = 0;
 
-// Display Object
 Adafruit_SharpMem _display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS, 400, 240);
+
+Adafriuit_MCP23X17 mcp;
 
 // ###############################################################################
 // Device Class
@@ -81,6 +82,26 @@ uint16_t Device::device_setup() {
     //iridium_setup();
     bme680_setup();
     ui.setup();  
+
+    if (!mcp.begin_I2C()){
+      log_error("MCP Error");
+      error += 1;
+    } else {
+      pinMode(MCP_INTERRUPT_PIN, INPUT);
+      mcp.setupInterrupts(true, false, LOW);
+      mcp.pinMode(MCP_CENTRE_PIN, INPUT_PULLUP);
+      mcp.pinMode(MCP_UP_PIN, INPUT_PULLUP);
+      mcp.pinMode(MCP_DOWN_PIN, INPUT_PULLUP);
+      mcp.pinMode(MCP_LEFT_PIN, INPUT_PULLUP);
+      mcp.pinMode(MCP_RIGHT_PIN, INPUT_PULLUP);
+      mcp.pinMode(MCP_ENCODER_PIN, INPUT_PULLUP);
+      mcp.setupInterruptPin(MCP_CENTRE_PIN, LOW);
+      mcp.setupInterruptPin(MCP_UP_PIN, LOW);
+      mcp.setupInterruptPin(MCP_DOWN_PIN, LOW);
+      mcp.setupInterruptPin(MCP_LEFT_PIN, LOW);
+      mcp.setupInterruptPin(MCP_RIGHT_PIN, LOW);
+    }
+    
     return error;
 }
 

@@ -19,8 +19,16 @@
 #include <Adafruit_GFX.h>    // Core graphics library
 #include <Adafruit_SharpMem.h>
 #include <Fonts/FreeSans9pt7b.h>
+#include <Adafruit_MCP23X17.h>
 //#include "WiFi.h"
 
+#define MCP_INTERRUPT_PIN 32
+#define MCP_LEFT_PIN 8
+#define MCP_RIGHT_PIN 8
+#define MCP_UP_PIN 8
+#define MCP_DOWN_PIN 8
+#define MCP_CENTRE_PIN 8
+#define MCP_ENCODER_PIN 8
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
@@ -116,7 +124,6 @@ class UIStateMachine {
         void alert_ui_state(Alert alert);
         void update_indicator_state(Indicator_State_t state);
         void iridium_msg_ui_state();
-        void update_ui_state();
 };
 
 class Device {
