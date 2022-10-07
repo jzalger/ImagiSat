@@ -63,6 +63,13 @@ enum Indicator_State_t {
     ERROR
 };
 
+enum User_UI_State {
+    STATUS,
+    WB_RADIO,
+    FORECAST,
+    IRIDIUM_MSG
+};
+
 void gps_data_callback(UBX_NAV_PVT_data_t ubxDataStruct);
 void IRAM_ATTR lightning_detect_callback();
 
