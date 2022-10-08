@@ -19,8 +19,6 @@ DeviceState device_state;
 Indicator_State_t INDICATOR_STATE = IDLE;
 States_t current_state = IDLE_STATE;
 States_t last_state = IDLE_STATE;
-User_UI_State user_state = STATUS;
-uint8_t last_user_btn_pin = 0;
 
 int error = 0;
 bool wb_rec_enabled = false;
@@ -35,7 +33,7 @@ TaskHandle_t indicator_task_handle = NULL;
 TaskHandle_t update_wx_conditions_task_handle = NULL;
 TaskHandle_t update_gps_task_handle = NULL;
 TaskHandle_t transmit_task_handle = NULL;  // TODO: Refactor this - legacy BT thing
-TaskHandle_t monitor_mcp = NULL;
+TaskHandle_t monitor_mcp_handle = NULL;
 // TODO: Rockblock transmit or receieve task?
 
 MainStateMachine::MainStateMachine() {
@@ -60,6 +58,15 @@ void MainStateMachine::setup() {
         1,
         &indicator_task_handle
     );
+    xTaskCreate(
+        monitor_mcp_task,
+        "mcp_task",
+        512,
+        NULL,
+        1,
+        &monitor_mcp_handle
+    );
+
     log_info("Setup complete");
     state_handler = &MainStateMachine::test_state;
 }
@@ -97,10 +104,7 @@ void MainStateMachine::idle_state() {
     log_info("Entering idle state");
     INDICATOR_STATE = IDLE;
     current_state = IDLE_STATE;
-    if (current_state != last_state || millis() - last_display_update > min_display_update_interval){
-        device.ui.status_ui_state(env_state, device_state);
-        last_display_update = millis();
-    }
+
     last_state = IDLE_STATE;
     update_main_state();
 }
@@ -116,10 +120,6 @@ void MainStateMachine::update_location_state(){
         device_state.last_gps_lock_time = millis();
     } else {
         INDICATOR_STATE = GPS_SEARCHING;
-    }
-    if (current_state != last_state || millis() - last_display_update > min_display_update_interval){
-        device.ui.status_ui_state(env_state, device_state);
-        last_display_update = millis();
     }
     last_state = UPDATE_LOCATION_STATE;
     update_main_state();
@@ -217,7 +217,9 @@ void indicator_task(void *parameter){
 void monitor_mcp_task(void *parameter){
     for(;;){
         if (!digitalRead(MCP_INTERRUPT_PIN)){
-
+            //FIXME: need to advance state
+            device.ui.button_event_handler(&env_state, &device_state);
+            vTaskDelay(250);
         }
     }
 }

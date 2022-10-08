@@ -26,7 +26,7 @@ int lightning_value = 0;
 
 Adafruit_SharpMem _display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS, 400, 240);
 
-Adafriuit_MCP23X17 mcp;
+
 
 // ###############################################################################
 // Device Class
@@ -81,26 +81,7 @@ uint16_t Device::device_setup() {
     //init_si4707();
     //iridium_setup();
     bme680_setup();
-    ui.setup();  
-
-    if (!mcp.begin_I2C()){
-      log_error("MCP Error");
-      error += 1;
-    } else {
-      pinMode(MCP_INTERRUPT_PIN, INPUT);
-      mcp.setupInterrupts(true, false, LOW);
-      mcp.pinMode(MCP_CENTRE_PIN, INPUT_PULLUP);
-      mcp.pinMode(MCP_UP_PIN, INPUT_PULLUP);
-      mcp.pinMode(MCP_DOWN_PIN, INPUT_PULLUP);
-      mcp.pinMode(MCP_LEFT_PIN, INPUT_PULLUP);
-      mcp.pinMode(MCP_RIGHT_PIN, INPUT_PULLUP);
-      mcp.pinMode(MCP_ENCODER_PIN, INPUT_PULLUP);
-      mcp.setupInterruptPin(MCP_CENTRE_PIN, LOW);
-      mcp.setupInterruptPin(MCP_UP_PIN, LOW);
-      mcp.setupInterruptPin(MCP_DOWN_PIN, LOW);
-      mcp.setupInterruptPin(MCP_LEFT_PIN, LOW);
-      mcp.setupInterruptPin(MCP_RIGHT_PIN, LOW);
-    }
+    error += ui.setup();  
     
     return error;
 }
@@ -394,15 +375,36 @@ UIStateMachine::UIStateMachine() {
   Display display;
   HapticDevice haptic;
   Indicator indicator;
+  Adafruit_MCP23X17 mcp;
 }
 
 UIStateMachine::~UIStateMachine() {
-
 }
 
-void UIStateMachine::setup(){
+uint8_t UIStateMachine::setup(){
+  uint8_t error = 0;
   display.setup();
+
+  if (!mcp.begin_I2C()){
+    log_error("MCP Error");
+    error += 1;
+  } else {
+    pinMode(MCP_INTERRUPT_PIN, INPUT);
+    mcp.setupInterrupts(true, false, LOW);
+    mcp.pinMode(MCP_CENTRE_PIN, INPUT_PULLUP);
+    mcp.pinMode(MCP_UP_PIN, INPUT_PULLUP);
+    mcp.pinMode(MCP_DOWN_PIN, INPUT_PULLUP);
+    mcp.pinMode(MCP_LEFT_PIN, INPUT_PULLUP);
+    mcp.pinMode(MCP_RIGHT_PIN, INPUT_PULLUP);
+    mcp.pinMode(MCP_ENCODER_PIN, INPUT_PULLUP);
+    mcp.setupInterruptPin(MCP_CENTRE_PIN, LOW);
+    mcp.setupInterruptPin(MCP_UP_PIN, LOW);
+    mcp.setupInterruptPin(MCP_DOWN_PIN, LOW);
+    mcp.setupInterruptPin(MCP_LEFT_PIN, LOW);
+    mcp.setupInterruptPin(MCP_RIGHT_PIN, LOW);
+  }
   //haptic.setup(); TODO: Remove when hardware is implemented
+  return error;
 }
 
 void UIStateMachine::test_ui_state(){
@@ -439,8 +441,53 @@ void UIStateMachine::refresh(){
   display.refresh();
 }
 
-void UIStateMachine::update_ui_state(){
-  
+void UIStateMachine::button_event_handler(environment_state *env_state, DeviceState *device_state) {
+  /*
+  Triggered when a button on the navigation wheel is pressed.
+
+  TODO: Will need to differentiate between state change buttons (left right) and 
+  state modifier buttons (up/down, scroll, center). Maybe this differentiation should be
+  upfront when interrupt is detected, then appropriate callback is triggered (change/modify state).
+  Perhaps each UI state could register a state modifier callback triggered by a modifier button
+  */
+  //device.ui.status_ui_state(env_state, device_state);
+  uint8_t btn_pressed = mcp.getLastInterruptPin();
+  switch(btn_pressed){
+    case MCP_LEFT_PIN:
+      log_debug("LEFT case triggered");
+      // Reverse to previous UI state
+      if (current_ui_state == 0){
+        switch_ui_state(N_UI_STATES-1, env_state, device_state);
+      } else {
+        switch_ui_state(current_ui_state-1, env_state, device_state);
+      }
+      break;
+    case MCP_RIGHT_PIN:
+      log_debug("RIGHT case triggered");
+      switch_ui_state(current_ui_state+1, env_state, device_state);
+      break;
+    case MCP_UP_PIN:
+      log_debug("UP case triggered");
+      modify_ui_state(UP);
+      break;
+    case MCP_DOWN_PIN:
+      log_debug("DOWN case triggered");
+      modify_ui_state(DOWN);
+      break;
+    case MCP_CENTRE_PIN:
+      log_debug("CENTRE case triggered");
+      modify_ui_state(SELECT);
+    default:
+      log_warning("No case for UI button press");
+      break;
+  }
+}
+void UIStateMachine::switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state){
+
+}
+
+void UIStateMachine::modify_ui_state(UI_Action_t action){
+
 }
 
 void UIStateMachine::update_indicator_state(Indicator_State_t state){

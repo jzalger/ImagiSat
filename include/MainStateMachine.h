@@ -53,6 +53,7 @@ void update_state_buffer(environment_state state);
 
 // State Tasks
 void indicator_task(void *parameter);
+void monitor_mcp_task(void *parameter);
 void transmit_state_task(void *parameter);
 void update_gps_task(void *parameter);
 void update_depth_task(void *parameter);

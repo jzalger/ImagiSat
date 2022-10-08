@@ -63,18 +63,20 @@ enum Indicator_State_t {
     ERROR
 };
 
-enum Button_Mapping_t {
-    RIGHT = MCP_RIGHT_PIN,
-    LEFT = MCP_LEFT_PIN,
-    UP = MCP_UP_PIN,
-    DOWN = MCP_DOWN_PIN
+enum User_UI_State {
+    STATUS_UI,
+    WB_RADIO_UI,
+    FORECAST_UI,
+    IRIDIUM_MSG_UI,
+    N_UI_STATES
 };
 
-enum User_UI_State {
-    STATUS,
-    WB_RADIO,
-    FORECAST,
-    IRIDIUM_MSG
+enum UI_Action_t {
+    UP,
+    DOWN,
+    SELECT,
+    SCROLL_FWD,
+    SCROLL_BACK
 };
 
 void gps_data_callback(UBX_NAV_PVT_data_t ubxDataStruct);
@@ -127,8 +129,11 @@ class UIStateMachine {
         Display display;
         HapticDevice haptic;
         Indicator indicator;
+        Adafruit_MCP23X17 mcp;
 
-        void setup();
+        User_UI_State current_ui_state = STATUS_UI;
+
+        uint8_t setup();
         void refresh();
         void gps_searching_state();
         void test_ui_state();
@@ -138,6 +143,9 @@ class UIStateMachine {
         void alert_ui_state(Alert alert);
         void update_indicator_state(Indicator_State_t state);
         void iridium_msg_ui_state();
+        void button_event_handler(environment_state *env_state, DeviceState *device_state);
+        void switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state);
+        void modify_ui_state(UI_Action_t action);
 };
 
 class Device {
