@@ -20,8 +20,8 @@
 #include <Adafruit_SharpMem.h>
 #include <Fonts/FreeSans9pt7b.h>
 #include <Adafruit_MCP23X17.h>
-//#include "WiFi.h"
 
+#define DFU_PIN 15
 #define MCP_INTERRUPT_PIN 32
 #define MCP_LEFT_PIN 8
 #define MCP_RIGHT_PIN 9

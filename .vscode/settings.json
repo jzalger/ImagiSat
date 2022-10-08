@@ -88,5 +88,9 @@
         "stop_token": "cpp",
         "cinttypes": "cpp"
     },
-    "C_Cpp.errorSquiggles": "Disabled"
+    "C_Cpp.errorSquiggles": "Disabled",
+    "sonarlint.connectedMode.project": {
+        "connectionId": "jzalger",
+        "projectKey": "jzalger_ImagiSat"
+    }
 }
