@@ -24,11 +24,11 @@
 
 #define MCP_INTERRUPT_PIN 32
 #define MCP_LEFT_PIN 8
-#define MCP_RIGHT_PIN 8
-#define MCP_UP_PIN 8
-#define MCP_DOWN_PIN 8
-#define MCP_CENTRE_PIN 8
-#define MCP_ENCODER_PIN 8
+#define MCP_RIGHT_PIN 9
+#define MCP_UP_PIN 10
+#define MCP_DOWN_PIN 11
+#define MCP_CENTRE_PIN 12
+#define MCP_ENCODER_PIN 13
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
@@ -61,6 +61,13 @@ enum Indicator_State_t {
     WX_ALERT,
     TEST,
     ERROR
+};
+
+enum Button_Mapping_t {
+    RIGHT = MCP_RIGHT_PIN,
+    LEFT = MCP_LEFT_PIN,
+    UP = MCP_UP_PIN,
+    DOWN = MCP_DOWN_PIN
 };
 
 enum User_UI_State {

@@ -19,6 +19,8 @@ DeviceState device_state;
 Indicator_State_t INDICATOR_STATE = IDLE;
 States_t current_state = IDLE_STATE;
 States_t last_state = IDLE_STATE;
+User_UI_State user_state = STATUS;
+uint8_t last_user_btn_pin = 0;
 
 int error = 0;
 bool wb_rec_enabled = false;
@@ -33,6 +35,7 @@ TaskHandle_t indicator_task_handle = NULL;
 TaskHandle_t update_wx_conditions_task_handle = NULL;
 TaskHandle_t update_gps_task_handle = NULL;
 TaskHandle_t transmit_task_handle = NULL;  // TODO: Refactor this - legacy BT thing
+TaskHandle_t monitor_mcp = NULL;
 // TODO: Rockblock transmit or receieve task?
 
 MainStateMachine::MainStateMachine() {
@@ -208,6 +211,14 @@ void indicator_task(void *parameter){
     for (;;){
         device.ui.update_indicator_state(INDICATOR_STATE);
         vTaskDelay(10);
+    }
+}
+
+void monitor_mcp_task(void *parameter){
+    for(;;){
+        if (!digitalRead(MCP_INTERRUPT_PIN)){
+
+        }
     }
 }
 
