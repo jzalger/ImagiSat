@@ -101,7 +101,7 @@ void MainStateMachine::test_state() {
 }
 
 void MainStateMachine::idle_state() {
-    log_info("Entering idle state");
+    //log_info("Entering idle state");
     INDICATOR_STATE = IDLE;
     current_state = IDLE_STATE;
 

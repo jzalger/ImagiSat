@@ -18,6 +18,7 @@ void setup()
 	pinMode(DFU_PIN, INPUT);
 	if(digitalRead(DFU_PIN)==HIGH) {
 		// Enter OTA update mode
+		log_debug("Entering DFU Mode");
 	}
 	mainStateMachine.setup();
 }
