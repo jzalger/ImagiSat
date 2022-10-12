@@ -4,7 +4,7 @@ uint32_t wx_sampling_interval = 10000;
 uint32_t health_update_interval = 60000;
 uint32_t state_transmit_interval = 1000;
 uint32_t gps_update_interval = 30000;
-uint16_t min_display_update_interval = 10000;
+uint16_t min_display_update_interval = 3000;
 
 uint64_t last_display_update = millis();
 uint64_t last_data_buffer_update = millis();
@@ -45,6 +45,7 @@ MainStateMachine::~MainStateMachine() {
 void MainStateMachine::setup() {
     log_info("Starting setup");
     error = device.device_setup();  
+
     if (error > 0) {
         state_handler = &MainStateMachine::error_state;
         return;
@@ -58,14 +59,15 @@ void MainStateMachine::setup() {
         1,
         &indicator_task_handle
     );
-    xTaskCreate(
-        monitor_mcp_task,
-        "mcp_task",
-        512,
-        NULL,
-        1,
-        &monitor_mcp_handle
-    );
+    // FIXME: Creates a kernel panic - perhaps trying to call an MCP function before its initialized.
+    //  xTaskCreate(
+    //     monitor_mcp_task,
+    //     "mcp_task",
+    //     512,
+    //     NULL,
+    //     1,
+    //     &monitor_mcp_handle
+    // ); 
 
     log_info("Setup complete");
     state_handler = &MainStateMachine::test_state;
@@ -89,14 +91,14 @@ void MainStateMachine::test_state() {
     update_health_state();
     int error = device.test();
     if (error == 0){
-        update_main_state();
         log_info("Exiting test state");
+        device.ui.status_ui_state(env_state, device_state);  //TODO: This is probably the wrong spot
+        update_main_state();
     } else {
         log_error("Exiting test state to ERROR");
         device_state.errors = 1;
         state_handler = &MainStateMachine::error_state;
     }
-    delay(1500); //FIXME: Update with RTOS delay
     last_state = TEST_STATE;
 }
 
@@ -159,8 +161,14 @@ void MainStateMachine::error_state() {
     INDICATOR_STATE = ERROR;
     current_state = ERROR_STATE;
     log_error("Entered Error State");
+    device.ui.error_ui_state("Entering Error State");
+
+    for (;;){
+        vTaskDelay(100);
+    }
+
     last_state = ERROR_STATE;
-    update_main_state();
+    //update_main_state();
 }
 
 void MainStateMachine::update_health_state() {
@@ -187,6 +195,10 @@ void MainStateMachine::update_main_state() {
         state_handler = &MainStateMachine::error_state;
     } else {
         state_handler = &MainStateMachine::idle_state;
+    }
+    if (millis() - last_display_update > min_display_update_interval){
+        device.ui.update_ui_state(env_state, device_state);
+        last_display_update = millis();
     }
 }
 
@@ -215,13 +227,13 @@ void indicator_task(void *parameter){
 }
 
 void monitor_mcp_task(void *parameter){
-    for(;;){
+     for(;;){
         if (!digitalRead(MCP_INTERRUPT_PIN)){
             //FIXME: need to advance state
             device.ui.button_event_handler(&env_state, &device_state);
-            vTaskDelay(250);
+            vTaskDelay(25);
         }
-    }
+    } 
 }
 
 void transmit_state_task(void *parameter){

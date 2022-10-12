@@ -2,15 +2,18 @@
 #include "Device.h"
 #include "types.h"
 
-#include <esp32fota.h>
-#include <WiFi.h>
+// See below
+//#include <esp32fota.h>
+//#include <WiFi.h>
 
 const uint8_t current_firmware_version = 0;
 
 MainStateMachine mainStateMachine;
 
-WiFiClientSecure ota_client;
-esp32FOTA esp32FOTA("ImagiSat", current_firmware_version, false);
+// FIXME: This seems create strange blocking behaviour - only activate when in DFU mode. Perhaps the indicator task is being interfered with.
+// Just including the headers seems to do this, whether instantiated or not. Need to understand how to deconflict this, perhaps enable on separate cores?
+//WiFiClientSecure ota_client;
+//esp32FOTA esp32FOTA("ImagiSat", current_firmware_version, false);
 
 void setup()
 {

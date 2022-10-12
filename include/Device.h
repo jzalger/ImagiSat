@@ -21,7 +21,7 @@
 #include <Fonts/FreeSans9pt7b.h>
 #include <Adafruit_MCP23X17.h>
 
-#define DFU_PIN 15
+#define DFU_PIN 33
 #define MCP_INTERRUPT_PIN 32
 #define MCP_LEFT_PIN 8
 #define MCP_RIGHT_PIN 9
@@ -32,7 +32,7 @@
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
-#define HAPTIC_DEVICE_PIN 99
+#define HAPTIC_DEVICE_PIN 12
 #define GPS_BAUD 9600
 #define GPS_ENABLE_PIN 32
 #define VOLTAGE_READ_PIN A13
@@ -47,7 +47,7 @@
 #define IR_RING_PIN 21
 #define DISPLAY_SS A5
 #define DISPLAY_SCK 5 
-#define DISPLAY_MOSI 18
+#define DISPLAY_MOSI 19  //18 on ESP32 V1
 #define BLACK 0
 #define WHITE 1
 
@@ -91,6 +91,7 @@ class Display {
         uint16_t setup();
         void refresh();
         void test_ui();
+        void error_ui(String error_msg);
         void status_ui(environment_state env_state, DeviceState device_state);
         void wb_rec_ui();
         void gps_searching_ui();
@@ -137,6 +138,7 @@ class UIStateMachine {
         void refresh();
         void gps_searching_state();
         void test_ui_state();
+        void error_ui_state(String error_msg);
         void status_ui_state(environment_state env_state, DeviceState device_state);
         void wb_rec_ui_state();
         void forecast_ui_state(environment_state samples[12], Forecast forecast[12]);
@@ -146,6 +148,7 @@ class UIStateMachine {
         void button_event_handler(environment_state *env_state, DeviceState *device_state);
         void switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state);
         void modify_ui_state(UI_Action_t action);
+        void update_ui_state(environment_state env_state, DeviceState device_state);
 };
 
 class Device {

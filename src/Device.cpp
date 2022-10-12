@@ -50,6 +50,7 @@ uint16_t Device::device_setup() {
     ring.begin();
     ring.setBrightness(50);
     ring.show();
+    error += ui.setup(); 
 
     if (ble_enabled){
       log_info("Running BLE Setup");
@@ -81,8 +82,6 @@ uint16_t Device::device_setup() {
     //init_si4707();
     //iridium_setup();
     bme680_setup();
-    error += ui.setup();  
-    
     return error;
 }
 
@@ -161,7 +160,7 @@ float Device::get_voltage() {
 
 int Device::get_charge_state() {
   float voltage = get_voltage();
-  int charge_state = floor(voltage/MAX_BAT_VOLTAGE);
+  int charge_state = floor(voltage/MAX_BAT_VOLTAGE*100);
   return charge_state;
 }
 
@@ -211,17 +210,19 @@ void Device::transmit_state(environment_state state) {
 void IRAM_ATTR lightning_detect_callback() {
   lightning_value = lightning.readInterruptReg();
   if (lightning_value == AS3935_NOISE_INT){
-    log_info("Lightning noise detected");
+    // TODO: Careful not to write to log during the interrupt. Set a flag instead, and check the flag state in the loop/state update
+
+    //log_info("Lightning noise detected");
     // lightning.setNoiseLevel(setNoiseLevel); to change noise level
   } else if (lightning_value == AS3935_DISTURBER_INT) {
-    log_info("Lightning disturber detected");
+    //log_info("Lightning disturber detected");
     // Too many disturbers? Uncomment the code below, a higher number means better
     // disturber rejection.
     // lightning.watchdogThreshold(threshVal);  
   } else if (lightning_value == AS3935_LIGHTNING_INT) {
     byte distance = lightning.distanceToStorm();
-    log_info("Lightning Detected!");
-    log_info(distance +  " km away");
+    //log_info("Lightning Detected!");
+    //log_info(distance +  " km away");
   }
 }
 
@@ -403,6 +404,8 @@ uint8_t UIStateMachine::setup(){
     mcp.setupInterruptPin(MCP_LEFT_PIN, LOW);
     mcp.setupInterruptPin(MCP_RIGHT_PIN, LOW);
   }
+  
+
   //haptic.setup(); TODO: Remove when hardware is implemented
   return error;
 }
@@ -411,6 +414,12 @@ void UIStateMachine::test_ui_state(){
   display.test_ui();
   haptic.notice();
 }
+
+void UIStateMachine::error_ui_state(String error_msg){
+  display.error_ui(error_msg);
+  haptic.notice();
+}
+
 
 void UIStateMachine::status_ui_state(environment_state env_state, DeviceState device_state) {
   display.status_ui(env_state, device_state);
@@ -450,7 +459,6 @@ void UIStateMachine::button_event_handler(environment_state *env_state, DeviceSt
   upfront when interrupt is detected, then appropriate callback is triggered (change/modify state).
   Perhaps each UI state could register a state modifier callback triggered by a modifier button
   */
-  //device.ui.status_ui_state(env_state, device_state);
   uint8_t btn_pressed = mcp.getLastInterruptPin();
   switch(btn_pressed){
     case MCP_LEFT_PIN:
@@ -482,6 +490,13 @@ void UIStateMachine::button_event_handler(environment_state *env_state, DeviceSt
       break;
   }
 }
+
+void UIStateMachine::update_ui_state(environment_state env_state, DeviceState device_state){
+  //FIXME: Need to call the state function like in mainStateMachine
+  display.status_ui(env_state, device_state);
+}
+
+
 void UIStateMachine::switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state){
 
 }
@@ -587,6 +602,16 @@ void Display::test_ui(){
   _display.refresh();
 }
 
+void Display::error_ui(String error_msg){
+  _display.setCursor(1,200);
+  _display.clearDisplay();
+  _display.setTextSize(2);
+  _display.println("ERROR!");
+  _display.setTextSize(1);
+  _display.println(error_msg);
+  _display.refresh();
+}
+
 void Display::gps_searching_ui(){
   _display.setCursor(1,200);
   _display.clearDisplay();
@@ -639,25 +664,25 @@ void HapticDevice::setup(){
 }
 
 void HapticDevice::vibrate(int milliseconds) {
-  digitalWrite(HAPTIC_DEVICE_PIN, HIGH);
+/*   digitalWrite(HAPTIC_DEVICE_PIN, HIGH);
   vTaskDelay(milliseconds);
-  digitalWrite(HAPTIC_DEVICE_PIN, LOW);
+  digitalWrite(HAPTIC_DEVICE_PIN, LOW); */
 }
 
 void HapticDevice::alert(){
-  vibrate(2000);
+/*   vibrate(2000);
   vTaskDelay(1000);
-  vibrate(2000);
+  vibrate(2000); */
 }
 
 void HapticDevice::notice(){
-  vibrate(1000);
+/*   vibrate(1000);
   vTaskDelay(1000);
-  vibrate(1000);
+  vibrate(1000); */
 }
 
 void HapticDevice::tap(){
-  vibrate(100);
+  //vibrate(100);
 }
 
 // ###############################################################################
