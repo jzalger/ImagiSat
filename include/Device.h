@@ -23,12 +23,12 @@
 
 #define DFU_PIN 33
 #define MCP_INTERRUPT_PIN 32
-#define MCP_LEFT_PIN 8
-#define MCP_RIGHT_PIN 9
+#define MCP_LEFT_PIN 15
+#define MCP_RIGHT_PIN 14
 #define MCP_UP_PIN 10
 #define MCP_DOWN_PIN 11
-#define MCP_CENTRE_PIN 12
-#define MCP_ENCODER_PIN 13
+#define MCP_CENTRE_PIN 9
+#define MCP_ENCODER_PIN 8
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B

@@ -59,16 +59,6 @@ void MainStateMachine::setup() {
         1,
         &indicator_task_handle
     );
-    // FIXME: Creates a kernel panic - perhaps trying to call an MCP function before its initialized.
-    //  xTaskCreate(
-    //     monitor_mcp_task,
-    //     "mcp_task",
-    //     512,
-    //     NULL,
-    //     1,
-    //     &monitor_mcp_handle
-    // ); 
-
     log_info("Setup complete");
     state_handler = &MainStateMachine::test_state;
 }
@@ -200,6 +190,11 @@ void MainStateMachine::update_main_state() {
         device.ui.update_ui_state(env_state, device_state);
         last_display_update = millis();
     }
+    if (!digitalRead(MCP_INTERRUPT_PIN)){
+        //FIXME: need to advance state
+        device.ui.button_event_handler(&env_state, &device_state);
+        vTaskDelay(50);
+    }
 }
 
 void update_state_buffer(environment_state state){
@@ -224,16 +219,6 @@ void indicator_task(void *parameter){
         device.ui.update_indicator_state(INDICATOR_STATE);
         vTaskDelay(10);
     }
-}
-
-void monitor_mcp_task(void *parameter){
-     for(;;){
-        if (!digitalRead(MCP_INTERRUPT_PIN)){
-            //FIXME: need to advance state
-            device.ui.button_event_handler(&env_state, &device_state);
-            vTaskDelay(25);
-        }
-    } 
 }
 
 void transmit_state_task(void *parameter){

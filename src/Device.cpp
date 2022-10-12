@@ -403,6 +403,7 @@ uint8_t UIStateMachine::setup(){
     mcp.setupInterruptPin(MCP_DOWN_PIN, LOW);
     mcp.setupInterruptPin(MCP_LEFT_PIN, LOW);
     mcp.setupInterruptPin(MCP_RIGHT_PIN, LOW);
+    mcp.setupInterruptPin(MCP_ENCODER_PIN, LOW);
   }
   
 
@@ -460,19 +461,20 @@ void UIStateMachine::button_event_handler(environment_state *env_state, DeviceSt
   Perhaps each UI state could register a state modifier callback triggered by a modifier button
   */
   uint8_t btn_pressed = mcp.getLastInterruptPin();
+  //log_debug(String(btn_pressed));
   switch(btn_pressed){
     case MCP_LEFT_PIN:
       log_debug("LEFT case triggered");
       // Reverse to previous UI state
       if (current_ui_state == 0){
-        switch_ui_state(N_UI_STATES-1, env_state, device_state);
+        //switch_ui_state(N_UI_STATES-1, env_state, device_state);
       } else {
-        switch_ui_state(current_ui_state-1, env_state, device_state);
+        //switch_ui_state(current_ui_state-1, env_state, device_state);
       }
       break;
     case MCP_RIGHT_PIN:
       log_debug("RIGHT case triggered");
-      switch_ui_state(current_ui_state+1, env_state, device_state);
+      //switch_ui_state(current_ui_state+1, env_state, device_state);
       break;
     case MCP_UP_PIN:
       log_debug("UP case triggered");
@@ -486,7 +488,6 @@ void UIStateMachine::button_event_handler(environment_state *env_state, DeviceSt
       log_debug("CENTRE case triggered");
       modify_ui_state(SELECT);
     default:
-      log_warning("No case for UI button press");
       break;
   }
 }
