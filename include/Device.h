@@ -20,15 +20,17 @@
 #include <Adafruit_SharpMem.h>
 #include <Fonts/FreeSans9pt7b.h>
 #include <Adafruit_MCP23X17.h>
+#include <RotaryEncoder.h>
 
 #define DFU_PIN 33
 #define MCP_INTERRUPT_PIN 32
-#define MCP_LEFT_PIN 15
-#define MCP_RIGHT_PIN 14
-#define MCP_UP_PIN 10
+#define MCP_LEFT_PIN 14
+#define MCP_RIGHT_PIN 12
+#define MCP_UP_PIN 13
 #define MCP_DOWN_PIN 11
-#define MCP_CENTRE_PIN 9
-#define MCP_ENCODER_PIN 8
+#define MCP_CENTRE_PIN 10
+#define MCP_ENCODER_A_PIN 8
+#define MCP_ENCODER_B_PIN 9
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
@@ -131,8 +133,11 @@ class UIStateMachine {
         HapticDevice haptic;
         Indicator indicator;
         Adafruit_MCP23X17 mcp;
+        //RotaryEncoder encoder(MCP_ENCODER_A_PIN, MCP_ENCODER_B_PIN, RotaryEncoder::LatchMode::TWO03);
+        uint16_t last_encoder_pos = 0;
 
         User_UI_State current_ui_state = STATUS_UI;
+        std::function<void(UIStateMachine&)> ui_state_handler = 0;
 
         uint8_t setup();
         void refresh();
@@ -149,6 +154,7 @@ class UIStateMachine {
         void switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state);
         void modify_ui_state(UI_Action_t action);
         void update_ui_state(environment_state env_state, DeviceState device_state);
+        void check_encoder_pos();
 };
 
 class Device {

@@ -397,13 +397,15 @@ uint8_t UIStateMachine::setup(){
     mcp.pinMode(MCP_DOWN_PIN, INPUT_PULLUP);
     mcp.pinMode(MCP_LEFT_PIN, INPUT_PULLUP);
     mcp.pinMode(MCP_RIGHT_PIN, INPUT_PULLUP);
-    mcp.pinMode(MCP_ENCODER_PIN, INPUT_PULLUP);
     mcp.setupInterruptPin(MCP_CENTRE_PIN, LOW);
     mcp.setupInterruptPin(MCP_UP_PIN, LOW);
     mcp.setupInterruptPin(MCP_DOWN_PIN, LOW);
     mcp.setupInterruptPin(MCP_LEFT_PIN, LOW);
     mcp.setupInterruptPin(MCP_RIGHT_PIN, LOW);
-    mcp.setupInterruptPin(MCP_ENCODER_PIN, LOW);
+    mcp.setupInterruptPin(MCP_ENCODER_A_PIN, CHANGE);
+    mcp.setupInterruptPin(MCP_ENCODER_B_PIN, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(MCP_ENCODER_A_PIN), check_encoder_pos, CHANGE);
+    //attachInterrupt(digitalPinToInterrupt(MCP_ENCODER_B_PIN), check_encoder_pos, CHANGE);
   }
   
 
@@ -461,31 +463,26 @@ void UIStateMachine::button_event_handler(environment_state *env_state, DeviceSt
   Perhaps each UI state could register a state modifier callback triggered by a modifier button
   */
   uint8_t btn_pressed = mcp.getLastInterruptPin();
-  //log_debug(String(btn_pressed));
   switch(btn_pressed){
     case MCP_LEFT_PIN:
-      log_debug("LEFT case triggered");
       // Reverse to previous UI state
       if (current_ui_state == 0){
-        //switch_ui_state(N_UI_STATES-1, env_state, device_state);
+        switch_ui_state(N_UI_STATES-1, env_state, device_state);
       } else {
-        //switch_ui_state(current_ui_state-1, env_state, device_state);
+        switch_ui_state(current_ui_state-1, env_state, device_state);
       }
       break;
     case MCP_RIGHT_PIN:
-      log_debug("RIGHT case triggered");
-      //switch_ui_state(current_ui_state+1, env_state, device_state);
+      // Advance to next UI State
+      switch_ui_state(current_ui_state+1, env_state, device_state);
       break;
     case MCP_UP_PIN:
-      log_debug("UP case triggered");
       modify_ui_state(UP);
       break;
     case MCP_DOWN_PIN:
-      log_debug("DOWN case triggered");
       modify_ui_state(DOWN);
       break;
     case MCP_CENTRE_PIN:
-      log_debug("CENTRE case triggered");
       modify_ui_state(SELECT);
     default:
       break;
@@ -493,18 +490,34 @@ void UIStateMachine::button_event_handler(environment_state *env_state, DeviceSt
 }
 
 void UIStateMachine::update_ui_state(environment_state env_state, DeviceState device_state){
-  //FIXME: Need to call the state function like in mainStateMachine
+  //FIXME: Need to call a state function like in mainStateMachine
   display.status_ui(env_state, device_state);
 }
 
-
 void UIStateMachine::switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state){
-
+/*   switch (new_state){
+    case STATUS_UI:
+      ui_state_handler = &UIStateMachine::status_ui_state;
+      break;
+    case WB_RADIO_UI:
+      ui_state_handler = &UIStateMachine::wb_rec_ui_state;
+      break;
+    case FORECAST_UI:
+      ui_state_handler = &UIStateMachine::forecast_ui_state;
+      break;
+    case IRIDIUM_MSG_UI:
+      ui_state_handler = &UIStateMachine::iridium_msg_ui_state;
+      break;
+  } */
 }
 
 void UIStateMachine::modify_ui_state(UI_Action_t action){
 
 }
+
+/* void UIStateMachine::check_encoder_pos(){
+  this->encoder.tick();
+} */
 
 void UIStateMachine::update_indicator_state(Indicator_State_t state){
   switch (state) {

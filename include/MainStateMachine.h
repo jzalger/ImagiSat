@@ -49,6 +49,7 @@ protected:
     int charge_state = 0;
 };
 
+void ui_update_loop();
 void update_state_buffer(environment_state state);
 
 // State Tasks

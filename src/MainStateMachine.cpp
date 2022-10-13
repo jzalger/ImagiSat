@@ -5,10 +5,12 @@ uint32_t health_update_interval = 60000;
 uint32_t state_transmit_interval = 1000;
 uint32_t gps_update_interval = 30000;
 uint16_t min_display_update_interval = 3000;
+uint16_t button_debounce_time = 250;
 
 uint64_t last_display_update = millis();
 uint64_t last_data_buffer_update = millis();
 uint64_t last_state_transmit = millis();
+uint64_t last_btn_press = millis();
 uint64_t last_position_update = 0;
 uint64_t last_wx_sample = 0;
 
@@ -35,6 +37,7 @@ TaskHandle_t update_gps_task_handle = NULL;
 TaskHandle_t transmit_task_handle = NULL;  // TODO: Refactor this - legacy BT thing
 TaskHandle_t monitor_mcp_handle = NULL;
 // TODO: Rockblock transmit or receieve task?
+
 
 MainStateMachine::MainStateMachine() {
 }
@@ -67,6 +70,7 @@ void MainStateMachine::loop() {
     if (state_handler) {
         state_handler(*this);
     }
+    ui_update_loop();
 }
 
 // ########################################################################
@@ -186,14 +190,18 @@ void MainStateMachine::update_main_state() {
     } else {
         state_handler = &MainStateMachine::idle_state;
     }
+}
+
+void ui_update_loop(){
     if (millis() - last_display_update > min_display_update_interval){
         device.ui.update_ui_state(env_state, device_state);
         last_display_update = millis();
     }
     if (!digitalRead(MCP_INTERRUPT_PIN)){
-        //FIXME: need to advance state
-        device.ui.button_event_handler(&env_state, &device_state);
-        vTaskDelay(50);
+        if (millis()-last_btn_press > button_debounce_time){
+            device.ui.button_event_handler(&env_state, &device_state);
+            last_btn_press = millis();
+        }
     }
 }
 
