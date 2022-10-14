@@ -130,7 +130,7 @@ class Indicator {
 class UIStateMachine {
     public:
         UIStateMachine();
-        ~UIStateMachine();
+        virtual ~UIStateMachine();
 
         Display display;
         HapticDevice haptic;
@@ -140,7 +140,7 @@ class UIStateMachine {
         uint16_t last_encoder_pos = 0;
 
         User_UI_State current_ui_state = STATUS_UI;
-        std::function<void(UIStateMachine&)> ui_state_handler = 0;
+        //std::function<void(UIStateMachine&)> ui_state_handler = 0;
 
         uint8_t setup();
         void refresh();
@@ -154,9 +154,8 @@ class UIStateMachine {
         void update_indicator_state(Indicator_State_t state);
         void iridium_msg_ui_state(State state);
         void button_event_handler(State state);
-        void switch_ui_state(uint8_t new_state, State state);
         void modify_ui_state(UI_Action_t action);
-        void update_ui_state(State state);
+        void update_ui_state(uint8_t state_num, State state);
         void check_encoder_pos();
 };
 

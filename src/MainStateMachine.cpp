@@ -193,7 +193,7 @@ void MainStateMachine::update_main_state() {
 
 void ui_update_loop(){
     if (millis() - last_display_update > min_display_update_interval){
-        device.ui.update_ui_state(state);
+        device.ui.update_ui_state(device.ui.current_ui_state, state);
         last_display_update = millis();
     }
     if (!digitalRead(MCP_INTERRUPT_PIN)){

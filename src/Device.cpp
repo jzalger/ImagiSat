@@ -461,24 +461,22 @@ void UIStateMachine::refresh(){
 }
 
 void UIStateMachine::button_event_handler(State state) {
-  //Triggered when a button on the navigation wheel is pressed.
-
   uint8_t btn_pressed = mcp.getLastInterruptPin();
   switch(btn_pressed){
     case MCP_LEFT_PIN:
       // Reverse to previous UI state
       if (current_ui_state == 0){
-        switch_ui_state(N_UI_STATES-1, state);
+        update_ui_state(N_UI_STATES-1, state);
       } else {
-        switch_ui_state(current_ui_state-1, state);
+        update_ui_state(current_ui_state-1, state);
       }
       break;
     case MCP_RIGHT_PIN:
       // Advance to next UI State
       if (current_ui_state == N_UI_STATES-1){
-        switch_ui_state(0, state);
+        update_ui_state(0, state);
       } else{
-        switch_ui_state(current_ui_state+1, state);
+        update_ui_state(current_ui_state+1, state);
       }
       break;
     case MCP_UP_PIN:
@@ -494,15 +492,9 @@ void UIStateMachine::button_event_handler(State state) {
   }
 }
 
-void UIStateMachine::update_ui_state(State state){
-  //FIXME: Need to call a state function like in mainStateMachine
-  //display.status_ui(state);
-}
-
-void UIStateMachine::switch_ui_state(uint8_t new_state, State state){
-   switch (new_state){
+void UIStateMachine::update_ui_state(uint8_t state_num, State state){
+   switch (state_num){
     case STATUS_UI:
-      //ui_state_handler = &UIStateMachine::status_ui_state;
       status_ui_state(state);
       break;
     case WB_RADIO_UI:
@@ -518,7 +510,7 @@ void UIStateMachine::switch_ui_state(uint8_t new_state, State state){
 }
 
 void UIStateMachine::modify_ui_state(UI_Action_t action){
-
+  // TODO: Might need to refactor the ui states to classes with modifier methods.
 }
 
 /* void UIStateMachine::check_encoder_pos(){
