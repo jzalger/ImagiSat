@@ -5,7 +5,7 @@ uint32_t health_update_interval = 60000;
 uint32_t state_transmit_interval = 1000;
 uint32_t gps_update_interval = 30000;
 uint16_t min_display_update_interval = 3000;
-uint16_t button_debounce_time = 200;
+uint16_t button_debounce_time = 280;
 
 uint64_t last_display_update = millis();
 uint64_t last_data_buffer_update = millis();
