@@ -70,7 +70,10 @@ enum User_UI_State {
     WB_RADIO_UI,
     FORECAST_UI,
     IRIDIUM_MSG_UI,
-    N_UI_STATES
+    N_UI_STATES,
+    ALERT_UI,
+    TEST_UI,
+    ERROR_UI
 };
 
 enum UI_Action_t {
@@ -94,12 +97,12 @@ class Display {
         void refresh();
         void test_ui();
         void error_ui(String error_msg);
-        void status_ui(environment_state env_state, DeviceState device_state);
-        void wb_rec_ui();
+        void status_ui(State state);
+        void wb_rec_ui(State state);
         void gps_searching_ui();
-        void forecast_ui(environment_state samples[12], Forecast forecast[12]);
+        void forecast_ui(State state);
         void alert_ui(Alert alert);
-        void iridium_msg_ui();
+        void iridium_msg_ui(State state);
 };
 
 class HapticDevice {
@@ -144,16 +147,16 @@ class UIStateMachine {
         void gps_searching_state();
         void test_ui_state();
         void error_ui_state(String error_msg);
-        void status_ui_state(environment_state env_state, DeviceState device_state);
-        void wb_rec_ui_state();
-        void forecast_ui_state(environment_state samples[12], Forecast forecast[12]);
+        void status_ui_state(State state);
+        void wb_rec_ui_state(State state);
+        void forecast_ui_state(State state);
         void alert_ui_state(Alert alert);
         void update_indicator_state(Indicator_State_t state);
-        void iridium_msg_ui_state();
-        void button_event_handler(environment_state *env_state, DeviceState *device_state);
-        void switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state);
+        void iridium_msg_ui_state(State state);
+        void button_event_handler(State state);
+        void switch_ui_state(uint8_t new_state, State state);
         void modify_ui_state(UI_Action_t action);
-        void update_ui_state(environment_state env_state, DeviceState device_state);
+        void update_ui_state(State state);
         void check_encoder_pos();
 };
 

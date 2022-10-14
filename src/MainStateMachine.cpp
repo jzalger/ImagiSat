@@ -5,7 +5,7 @@ uint32_t health_update_interval = 60000;
 uint32_t state_transmit_interval = 1000;
 uint32_t gps_update_interval = 30000;
 uint16_t min_display_update_interval = 3000;
-uint16_t button_debounce_time = 250;
+uint16_t button_debounce_time = 200;
 
 uint64_t last_display_update = millis();
 uint64_t last_data_buffer_update = millis();
@@ -15,8 +15,7 @@ uint64_t last_position_update = 0;
 uint64_t last_wx_sample = 0;
 
 Device device;
-environment_state env_state;
-DeviceState device_state;
+State state;
 
 Indicator_State_t INDICATOR_STATE = IDLE;
 States_t current_state = IDLE_STATE;
@@ -86,11 +85,11 @@ void MainStateMachine::test_state() {
     int error = device.test();
     if (error == 0){
         log_info("Exiting test state");
-        device.ui.status_ui_state(env_state, device_state);  //TODO: This is probably the wrong spot
+        device.ui.status_ui_state(state);  //TODO: This is probably the wrong spot
         update_main_state();
     } else {
         log_error("Exiting test state to ERROR");
-        device_state.errors = 1;
+        state.device_state.errors = 1;
         state_handler = &MainStateMachine::error_state;
     }
     last_state = TEST_STATE;
@@ -108,12 +107,12 @@ void MainStateMachine::idle_state() {
 void MainStateMachine::update_location_state(){
     current_state = UPDATE_LOCATION_STATE;
     device.update_gps_location();
-    std::tie(env_state.latitude, env_state.longitude, env_state.alititude, env_state.sats, gps_fix) = device.get_gps_location();
-    env_state.time = millis();  // TODO: Fix with an actual time.
+    std::tie(state.env_state.latitude, state.env_state.longitude, state.env_state.alititude, state.env_state.sats, gps_fix) = device.get_gps_location();
+    state.env_state.time = millis();  // TODO: Fix with an actual time.
     //Manage LED Indicator
     if (gps_fix) {
         INDICATOR_STATE = GPS_LOCK;
-        device_state.last_gps_lock_time = millis();
+        state.device_state.last_gps_lock_time = millis();
     } else {
         INDICATOR_STATE = GPS_SEARCHING;
     }
@@ -123,7 +122,7 @@ void MainStateMachine::update_location_state(){
 
 void MainStateMachine::sample_wx_condition_state(){
     current_state = SAMPLE_WX_CONDITION_STATE;
-    std::tie(env_state.temperature, env_state.pressure, env_state.humidity, env_state.voc, env_state.p_alt) = device.get_wx_reading();
+    std::tie(state.env_state.temperature, state.env_state.pressure, state.env_state.humidity, state.env_state.voc, state.env_state.p_alt) = device.get_wx_reading();
     last_state = SAMPLE_WX_CONDITION_STATE;
     last_wx_sample = millis();
     update_main_state();
@@ -170,8 +169,8 @@ void MainStateMachine::update_health_state() {
     current_state = UPDATE_HEALTH_STATE;
     voltage = device.get_voltage();
     charge_state = device.get_charge_state();
-    device_state.charge_state = charge_state;
-    device_state.voltage = voltage;
+    state.device_state.charge_state = charge_state;
+    state.device_state.voltage = voltage;
     last_state = UPDATE_HEALTH_STATE;
     update_main_state();
 }
@@ -194,12 +193,12 @@ void MainStateMachine::update_main_state() {
 
 void ui_update_loop(){
     if (millis() - last_display_update > min_display_update_interval){
-        device.ui.update_ui_state(env_state, device_state);
+        device.ui.update_ui_state(state);
         last_display_update = millis();
     }
     if (!digitalRead(MCP_INTERRUPT_PIN)){
         if (millis()-last_btn_press > button_debounce_time){
-            device.ui.button_event_handler(&env_state, &device_state);
+            device.ui.button_event_handler(state);
             last_btn_press = millis();
         }
     }
@@ -231,7 +230,7 @@ void indicator_task(void *parameter){
 
 void transmit_state_task(void *parameter){
     for (;;) {
-        device.transmit_state(env_state);
+        device.transmit_state(state.env_state);
         vTaskDelay(state_transmit_interval);
     }
 }

@@ -41,6 +41,14 @@ struct Forecast {
     String condition;
 };
 
+
+struct State {
+    environment_state env_state;
+    DeviceState device_state;
+    Forecast current_forecast;   
+};
+
+
 enum AlertType {
     LIGHTNING_ALERT,
     SEVERE_WEATHER_ALERT

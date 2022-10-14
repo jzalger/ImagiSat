@@ -414,37 +414,44 @@ uint8_t UIStateMachine::setup(){
 }
 
 void UIStateMachine::test_ui_state(){
+  current_ui_state = TEST_UI;
   display.test_ui();
   haptic.notice();
 }
 
 void UIStateMachine::error_ui_state(String error_msg){
+  current_ui_state = ERROR_UI;
   display.error_ui(error_msg);
   haptic.notice();
 }
 
 
-void UIStateMachine::status_ui_state(environment_state env_state, DeviceState device_state) {
-  display.status_ui(env_state, device_state);
+void UIStateMachine::status_ui_state(State state) {
+  current_ui_state = STATUS_UI;
+  display.status_ui(state);
 }
 
-void UIStateMachine::wb_rec_ui_state(){
-  display.wb_rec_ui();
+void UIStateMachine::wb_rec_ui_state(State state){
+  current_ui_state = WB_RADIO_UI;
+  display.wb_rec_ui(state);
 }
 
 void UIStateMachine::gps_searching_state(){
   display.gps_searching_ui();
 }
 
-void UIStateMachine::forecast_ui_state(environment_state samples[12], Forecast forecast[12]){
-  display.forecast_ui(samples, forecast);
+void UIStateMachine::forecast_ui_state(State state){
+  current_ui_state = FORECAST_UI;
+  display.forecast_ui(state);
 }
 
-void UIStateMachine::iridium_msg_ui_state(){
-  
+void UIStateMachine::iridium_msg_ui_state(State state){
+  current_ui_state = IRIDIUM_MSG_UI;
+  display.iridium_msg_ui(state);
 }
 
 void UIStateMachine::alert_ui_state(Alert alert){
+  current_ui_state = ALERT_UI;
   haptic.alert();
   display.alert_ui(alert);
 }
@@ -453,28 +460,26 @@ void UIStateMachine::refresh(){
   display.refresh();
 }
 
-void UIStateMachine::button_event_handler(environment_state *env_state, DeviceState *device_state) {
-  /*
-  Triggered when a button on the navigation wheel is pressed.
+void UIStateMachine::button_event_handler(State state) {
+  //Triggered when a button on the navigation wheel is pressed.
 
-  TODO: Will need to differentiate between state change buttons (left right) and 
-  state modifier buttons (up/down, scroll, center). Maybe this differentiation should be
-  upfront when interrupt is detected, then appropriate callback is triggered (change/modify state).
-  Perhaps each UI state could register a state modifier callback triggered by a modifier button
-  */
   uint8_t btn_pressed = mcp.getLastInterruptPin();
   switch(btn_pressed){
     case MCP_LEFT_PIN:
       // Reverse to previous UI state
       if (current_ui_state == 0){
-        switch_ui_state(N_UI_STATES-1, env_state, device_state);
+        switch_ui_state(N_UI_STATES-1, state);
       } else {
-        switch_ui_state(current_ui_state-1, env_state, device_state);
+        switch_ui_state(current_ui_state-1, state);
       }
       break;
     case MCP_RIGHT_PIN:
       // Advance to next UI State
-      switch_ui_state(current_ui_state+1, env_state, device_state);
+      if (current_ui_state == N_UI_STATES-1){
+        switch_ui_state(0, state);
+      } else{
+        switch_ui_state(current_ui_state+1, state);
+      }
       break;
     case MCP_UP_PIN:
       modify_ui_state(UP);
@@ -489,26 +494,27 @@ void UIStateMachine::button_event_handler(environment_state *env_state, DeviceSt
   }
 }
 
-void UIStateMachine::update_ui_state(environment_state env_state, DeviceState device_state){
+void UIStateMachine::update_ui_state(State state){
   //FIXME: Need to call a state function like in mainStateMachine
-  display.status_ui(env_state, device_state);
+  //display.status_ui(state);
 }
 
-void UIStateMachine::switch_ui_state(uint8_t new_state, environment_state *env_state, DeviceState *device_state){
-/*   switch (new_state){
+void UIStateMachine::switch_ui_state(uint8_t new_state, State state){
+   switch (new_state){
     case STATUS_UI:
-      ui_state_handler = &UIStateMachine::status_ui_state;
+      //ui_state_handler = &UIStateMachine::status_ui_state;
+      status_ui_state(state);
       break;
     case WB_RADIO_UI:
-      ui_state_handler = &UIStateMachine::wb_rec_ui_state;
+      wb_rec_ui_state(state);
       break;
     case FORECAST_UI:
-      ui_state_handler = &UIStateMachine::forecast_ui_state;
+      forecast_ui_state(state);
       break;
     case IRIDIUM_MSG_UI:
-      ui_state_handler = &UIStateMachine::iridium_msg_ui_state;
+      iridium_msg_ui_state(state);
       break;
-  } */
+  } 
 }
 
 void UIStateMachine::modify_ui_state(UI_Action_t action){
@@ -585,7 +591,7 @@ void Display::refresh(){
   _display.refresh();
 }
 
-void Display::status_ui(environment_state env_state, DeviceState device_state){
+void Display::status_ui(State state){
   char health_text[30];
   char location_text[40];
   char wx_text[64];
@@ -593,15 +599,15 @@ void Display::status_ui(environment_state env_state, DeviceState device_state){
   _display.clearDisplay();
   _display.setCursor(1,15);
   _display.print("Health\n");
-  sprintf(health_text, "Voltage: %.1f\nCharge %d\n\n", device_state.voltage, device_state.charge_state);
+  sprintf(health_text, "Voltage: %.1f\nCharge %d\n\n", state.device_state.voltage, state.device_state.charge_state);
   _display.print(health_text);
   
   _display.print("GPS\n");
-  sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n\n", env_state.sats, env_state.latitude, env_state.longitude);
+  sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n\n", state.env_state.sats, state.env_state.latitude, state.env_state.longitude);
   _display.print(location_text);
 
   _display.print("Conditions\n");
-  sprintf(wx_text,"Temp: %.1f C\nRh: %.1f %%\nPres: %.3f kPa\nVOC: %.1f", env_state.temperature, env_state.humidity, env_state.pressure/1000.0, env_state.voc);
+  sprintf(wx_text,"Temp: %.1f C\nRh: %.1f %%\nPres: %.3f kPa\nVOC: %.1f", state.env_state.temperature, state.env_state.humidity, state.env_state.pressure/1000.0, state.env_state.voc);
   _display.print(wx_text);
   _display.refresh();
 }
@@ -649,16 +655,25 @@ void Display::alert_ui(Alert alert){
   _display.refresh();
 }
 
-void Display::forecast_ui(environment_state samples[12], Forecast forecast[12]) {
-
+void Display::forecast_ui(State state) {
+  _display.setCursor(1,200);
+  _display.clearDisplay();
+  _display.println("Forecast UI");
+  _display.refresh();
 }
 
-void Display::wb_rec_ui() {
-    
+void Display::wb_rec_ui(State state) {
+  _display.setCursor(1,200);
+  _display.clearDisplay();
+  _display.println("WX BAND UI");
+  _display.refresh();
 }
 
-void Display::iridium_msg_ui(){
-
+void Display::iridium_msg_ui(State state){
+  _display.setCursor(1,200);
+  _display.clearDisplay();
+  _display.println("IRIDIUM UI");
+  _display.refresh();
 }
 
 // ###############################################################################
