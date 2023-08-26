@@ -196,12 +196,6 @@ void ui_update_loop(){
         device.ui.update_ui_state(device.ui.current_ui_state, state);
         last_display_update = millis();
     }
-    if (!digitalRead(MCP_INTERRUPT_PIN)){
-        if (millis()-last_btn_press > button_debounce_time){
-            device.ui.button_event_handler(state);
-            last_btn_press = millis();
-        }
-    }
 }
 
 void update_state_buffer(environment_state state){

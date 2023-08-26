@@ -17,20 +17,9 @@
 #include <si4707.h>
 #include <SparkFun_AS3935.h>
 #include <Adafruit_GFX.h>    // Core graphics library
-#include <Adafruit_SharpMem.h>
 #include <Fonts/FreeSans9pt7b.h>
-#include <Adafruit_MCP23X17.h>
-#include <RotaryEncoder.h>
 
 #define DFU_PIN 33
-#define MCP_INTERRUPT_PIN 32
-#define MCP_LEFT_PIN 14
-#define MCP_RIGHT_PIN 12
-#define MCP_UP_PIN 13
-#define MCP_DOWN_PIN 11
-#define MCP_CENTRE_PIN 10
-#define MCP_ENCODER_A_PIN 8
-#define MCP_ENCODER_B_PIN 9
 #define PIXEL_COUNT 16
 #define PIXEL_PIN 13
 #define PIXEL_TYPE WS2812B
@@ -50,6 +39,8 @@
 #define DISPLAY_SS A5
 #define DISPLAY_SCK 5 
 #define DISPLAY_MOSI 19  //18 on ESP32 V1
+#define DISPLAY_MISO 18
+#define DISPLAY_DC A4
 #define BLACK 0
 #define WHITE 1
 
@@ -135,7 +126,6 @@ class UIStateMachine {
         Display display;
         HapticDevice haptic;
         Indicator indicator;
-        Adafruit_MCP23X17 mcp;
         //RotaryEncoder encoder(MCP_ENCODER_A_PIN, MCP_ENCODER_B_PIN, RotaryEncoder::LatchMode::TWO03);
         uint16_t last_encoder_pos = 0;
 

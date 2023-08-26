@@ -24,7 +24,7 @@ Adafruit_BME680 bme;
 SparkFun_AS3935 lightning(AS3935_ADDR);
 int lightning_value = 0;
 
-Adafruit_SharpMem _display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS, 400, 240);
+// Adafruit_SharpMem _display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS, 400, 240);
 
 
 
@@ -376,7 +376,6 @@ UIStateMachine::UIStateMachine() {
   Display display;
   HapticDevice haptic;
   Indicator indicator;
-  Adafruit_MCP23X17 mcp;
 }
 
 UIStateMachine::~UIStateMachine() {
@@ -386,29 +385,7 @@ uint8_t UIStateMachine::setup(){
   uint8_t error = 0;
   display.setup();
 
-  if (!mcp.begin_I2C()){
-    log_error("MCP Error");
-    error += 1;
-  } else {
-    pinMode(MCP_INTERRUPT_PIN, INPUT);
-    mcp.setupInterrupts(true, false, LOW);
-    mcp.pinMode(MCP_CENTRE_PIN, INPUT_PULLUP);
-    mcp.pinMode(MCP_UP_PIN, INPUT_PULLUP);
-    mcp.pinMode(MCP_DOWN_PIN, INPUT_PULLUP);
-    mcp.pinMode(MCP_LEFT_PIN, INPUT_PULLUP);
-    mcp.pinMode(MCP_RIGHT_PIN, INPUT_PULLUP);
-    mcp.setupInterruptPin(MCP_CENTRE_PIN, LOW);
-    mcp.setupInterruptPin(MCP_UP_PIN, LOW);
-    mcp.setupInterruptPin(MCP_DOWN_PIN, LOW);
-    mcp.setupInterruptPin(MCP_LEFT_PIN, LOW);
-    mcp.setupInterruptPin(MCP_RIGHT_PIN, LOW);
-    mcp.setupInterruptPin(MCP_ENCODER_A_PIN, CHANGE);
-    mcp.setupInterruptPin(MCP_ENCODER_B_PIN, CHANGE);
-    //attachInterrupt(digitalPinToInterrupt(MCP_ENCODER_A_PIN), check_encoder_pos, CHANGE);
-    //attachInterrupt(digitalPinToInterrupt(MCP_ENCODER_B_PIN), check_encoder_pos, CHANGE);
-  }
-  
-
+ 
   //haptic.setup(); TODO: Remove when hardware is implemented
   return error;
 }
@@ -461,35 +438,6 @@ void UIStateMachine::refresh(){
 }
 
 void UIStateMachine::button_event_handler(State state) {
-  uint8_t btn_pressed = mcp.getLastInterruptPin();
-  switch(btn_pressed){
-    case MCP_LEFT_PIN:
-      // Reverse to previous UI state
-      if (current_ui_state == 0){
-        update_ui_state(N_UI_STATES-1, state);
-      } else {
-        update_ui_state(current_ui_state-1, state);
-      }
-      break;
-    case MCP_RIGHT_PIN:
-      // Advance to next UI State
-      if (current_ui_state == N_UI_STATES-1){
-        update_ui_state(0, state);
-      } else{
-        update_ui_state(current_ui_state+1, state);
-      }
-      break;
-    case MCP_UP_PIN:
-      modify_ui_state(UP);
-      break;
-    case MCP_DOWN_PIN:
-      modify_ui_state(DOWN);
-      break;
-    case MCP_CENTRE_PIN:
-      modify_ui_state(SELECT);
-    default:
-      break;
-  }
 }
 
 void UIStateMachine::update_ui_state(uint8_t state_num, State state){
@@ -571,16 +519,16 @@ Display::~Display() {
 }
 
 uint16_t Display::setup(){
-    _display.begin();
-    _display.setRotation(1);
-    _display.setFont(&FreeSans9pt7b);
-    _display.setTextWrap(true);
-    _display.setTextColor(BLACK);
+    // _display.begin();
+    // _display.setRotation(1);
+    // _display.setFont(&FreeSans9pt7b);
+    // _display.setTextWrap(true);
+    // _display.setTextColor(BLACK);
     return 0;
 }
 
 void Display::refresh(){
-  _display.refresh();
+  //_display.refresh();
 }
 
 void Display::status_ui(State state){
@@ -588,84 +536,84 @@ void Display::status_ui(State state){
   char location_text[40];
   char wx_text[64];
 
-  _display.clearDisplay();
-  _display.setCursor(1,15);
-  _display.print("Health\n");
-  sprintf(health_text, "Voltage: %.1f\nCharge %d\n\n", state.device_state.voltage, state.device_state.charge_state);
-  _display.print(health_text);
+  // _display.clearDisplay();
+  // _display.setCursor(1,15);
+  // _display.print("Health\n");
+  // sprintf(health_text, "Voltage: %.1f\nCharge %d\n\n", state.device_state.voltage, state.device_state.charge_state);
+  // _display.print(health_text);
   
-  _display.print("GPS\n");
-  sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n\n", state.env_state.sats, state.env_state.latitude, state.env_state.longitude);
-  _display.print(location_text);
+  // _display.print("GPS\n");
+  // sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n\n", state.env_state.sats, state.env_state.latitude, state.env_state.longitude);
+  // _display.print(location_text);
 
-  _display.print("Conditions\n");
-  sprintf(wx_text,"Temp: %.1f C\nRh: %.1f %%\nPres: %.3f kPa\nVOC: %.1f", state.env_state.temperature, state.env_state.humidity, state.env_state.pressure/1000.0, state.env_state.voc);
-  _display.print(wx_text);
-  _display.refresh();
+  // _display.print("Conditions\n");
+  // sprintf(wx_text,"Temp: %.1f C\nRh: %.1f %%\nPres: %.3f kPa\nVOC: %.1f", state.env_state.temperature, state.env_state.humidity, state.env_state.pressure/1000.0, state.env_state.voc);
+  // _display.print(wx_text);
+  // _display.refresh();
 }
 
 void Display::test_ui(){
-  _display.setCursor(1,200);
-  _display.clearDisplay();
-  _display.setTextSize(2);
-  _display.println("ImagiSat");
-  _display.setTextSize(1);
-  _display.println("A meterologist in your pocket");
-  _display.refresh();
+  // _display.setCursor(1,200);
+  // _display.clearDisplay();
+  // _display.setTextSize(2);
+  // _display.println("ImagiSat");
+  // _display.setTextSize(1);
+  // _display.println("A meterologist in your pocket");
+  // _display.refresh();
 }
 
 void Display::error_ui(String error_msg){
-  _display.setCursor(1,200);
-  _display.clearDisplay();
-  _display.setTextSize(2);
-  _display.println("ERROR!");
-  _display.setTextSize(1);
-  _display.println(error_msg);
-  _display.refresh();
+  // _display.setCursor(1,200);
+  // _display.clearDisplay();
+  // _display.setTextSize(2);
+  // _display.println("ERROR!");
+  // _display.setTextSize(1);
+  // _display.println(error_msg);
+  // _display.refresh();
 }
 
 void Display::gps_searching_ui(){
-  _display.setCursor(1,200);
-  _display.clearDisplay();
-  _display.println("Searching for GPS Fix");
-  _display.refresh();
+  // _display.setCursor(1,200);
+  // _display.clearDisplay();
+  // _display.println("Searching for GPS Fix");
+  // _display.refresh();
 }
 
 void Display::alert_ui(Alert alert){
-  _display.setCursor(100,150);
-  _display.setTextSize(2);
-  switch (alert.type){
-    case LIGHTNING_ALERT:
-        _display.println("LIGHTNING");
-        break;
-    case SEVERE_WEATHER_ALERT:
-        _display.println("SEVERE WEATHER");
-        break;
-  }
-  _display.setTextSize(3);
-  _display.println("ALERT");
-  _display.refresh();
+  // _display.setCursor(100,150);
+  // _display.setTextSize(2);
+  // switch (alert.type){
+  //   case LIGHTNING_ALERT:
+  //       _display.println("LIGHTNING");
+  //       break;
+  //   case SEVERE_WEATHER_ALERT:
+  //       _display.println("SEVERE WEATHER");
+  //       break;
+  // }
+  // _display.setTextSize(3);
+  // _display.println("ALERT");
+  // _display.refresh();
 }
 
 void Display::forecast_ui(State state) {
-  _display.setCursor(1,200);
-  _display.clearDisplay();
-  _display.println("Forecast UI");
-  _display.refresh();
+  // _display.setCursor(1,200);
+  // _display.clearDisplay();
+  // _display.println("Forecast UI");
+  // _display.refresh();
 }
 
 void Display::wb_rec_ui(State state) {
-  _display.setCursor(1,200);
-  _display.clearDisplay();
-  _display.println("WX BAND UI");
-  _display.refresh();
+  // _display.setCursor(1,200);
+  // _display.clearDisplay();
+  // _display.println("WX BAND UI");
+  // _display.refresh();
 }
 
 void Display::iridium_msg_ui(State state){
-  _display.setCursor(1,200);
-  _display.clearDisplay();
-  _display.println("IRIDIUM UI");
-  _display.refresh();
+  // _display.setCursor(1,200);
+  // _display.clearDisplay();
+  // _display.println("IRIDIUM UI");
+  // _display.refresh();
 }
 
 // ###############################################################################

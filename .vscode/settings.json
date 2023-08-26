@@ -92,5 +92,6 @@
     "sonarlint.connectedMode.project": {
         "connectionId": "jzalger",
         "projectKey": "jzalger_ImagiSat"
-    }
+    },
+    "cmake.configureOnOpen": false
 }
