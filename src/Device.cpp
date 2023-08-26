@@ -72,16 +72,20 @@ uint16_t Device::device_setup() {
       }
     }
     pinMode(AS3935_INT_PIN, INPUT);
-    if(!lightning.begin()){
-      log_error("AS3935 Lighning Sensor init failed");
-      error += 1;
-    } else {
-      attachInterrupt(AS3935_INT_PIN, lightning_detect_callback, RISING);
-      log_info("Completed lightning sensor init");
+    if (lightning_enabled) {
+      if(!lightning.begin()){
+        log_error("AS3935 Lighning Sensor init failed");
+        error += 1;
+      } else {
+        attachInterrupt(AS3935_INT_PIN, lightning_detect_callback, RISING);
+        log_info("Completed lightning sensor init");
+      }
     }
     //init_si4707();
     //iridium_setup();
-    bme680_setup();
+    if (bme680_enabled) {
+      bme680_setup();
+    }
     return error;
 }
 

@@ -39,7 +39,7 @@
 #define DISPLAY_SS A5
 #define DISPLAY_SCK 5 
 #define DISPLAY_MOSI 19  //18 on ESP32 V1
-#define DISPLAY_MISO 18
+
 #define DISPLAY_DC A4
 #define BLACK 0
 #define WHITE 1
@@ -157,7 +157,9 @@ class Device {
 
         bool gps_enabled = true;
         bool ble_enabled = false;
-        bool iridium_enabled = true;
+        bool lightning_enabled = true;
+        bool bme680_enabled = true;
+        bool iridium_enabled = false;
         bool iridium_diagnostics = false;
         int iridium_signal_quality = -1;
         void enable_ble();
