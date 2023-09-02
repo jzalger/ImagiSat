@@ -39,6 +39,10 @@
 #define DISPLAY_SS A5
 #define DISPLAY_SCK 5 
 #define DISPLAY_MOSI 19  //18 on ESP32 V1
+#define TOUCH_YM A0
+#define TOUCH_YP A1
+#define TOUCH_XM A2
+#define TOUCH_XP A3
 
 #define DISPLAY_DC A4
 #define BLACK 0
