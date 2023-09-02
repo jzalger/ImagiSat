@@ -3,4 +3,10 @@
 .DS_Store
 compile_commands.json
 hardware/
-ui/icons
+ui/icons/
+ui/assets/
+ui/backup
+ui/cache
+
+
+
