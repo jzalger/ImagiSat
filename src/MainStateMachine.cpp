@@ -4,10 +4,7 @@ uint32_t wx_sampling_interval = 10000;
 uint32_t health_update_interval = 60000;
 uint32_t state_transmit_interval = 1000;
 uint32_t gps_update_interval = 30000;
-uint16_t min_display_update_interval = 3000;
 uint16_t button_debounce_time = 280;
-
-uint64_t last_display_update = millis();
 uint64_t last_data_buffer_update = millis();
 uint64_t last_state_transmit = millis();
 uint64_t last_btn_press = millis();
@@ -79,7 +76,6 @@ void MainStateMachine::test_state() {
     INDICATOR_STATE = TEST;
     current_state = TEST_STATE;
     device.ui.test_ui_state();
-    last_display_update = millis();
     log_info("Entered test state");
     update_health_state();
     int error = device.test();
@@ -129,13 +125,9 @@ void MainStateMachine::sample_wx_condition_state(){
 }
 
 void MainStateMachine::wb_receive_state() {
-    // current_state = WB_RECEIVE_STATE;
-    // if (current_state != last_state || millis() - last_display_update > min_display_update_interval){
-    //     device.ui.wb_rec_ui_state();
-    //     last_display_update = millis();
-    // }
-    // last_state = WB_RECEIVE_STATE;
-    // update_main_state();
+    current_state = WB_RECEIVE_STATE;
+    last_state = WB_RECEIVE_STATE;
+    update_main_state();
 }
 
 void MainStateMachine::iridium_receive_state(){
@@ -192,10 +184,7 @@ void MainStateMachine::update_main_state() {
 }
 
 void ui_update_loop(){
-    if (millis() - last_display_update > min_display_update_interval){
-        device.ui.update_ui_state(device.ui.current_ui_state, state);
-        last_display_update = millis();
-    }
+
 }
 
 void update_state_buffer(environment_state state){

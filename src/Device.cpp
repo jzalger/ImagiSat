@@ -6,6 +6,9 @@ bool debug_mode = true;
 
 HardwareSerial iridium_serial(1);
 IridiumSBD iridium_modem(iridium_serial, -1, IR_RING_PIN);
+int iridium_signal_quality = 0;
+bool iridium_diagnostics = false;
+
 
 SFE_UBLOX_GNSS GPS;
 UBX_NAV_PVT_data_t gps_data;
@@ -23,10 +26,6 @@ bool old_ble_device_connected = false;
 Adafruit_BME680 bme;
 SparkFun_AS3935 lightning(AS3935_ADDR);
 int lightning_value = 0;
-
-// Adafruit_SharpMem _display(DISPLAY_SCK, DISPLAY_MOSI, DISPLAY_SS, 400, 240);
-
-
 
 // ###############################################################################
 // Device Class
@@ -377,7 +376,6 @@ uint16_t Device::_test_device_health(){
 // ###############################################################################
 
 UIStateMachine::UIStateMachine() {
-  Display display;
   HapticDevice haptic;
   Indicator indicator;
 }
@@ -387,58 +385,46 @@ UIStateMachine::~UIStateMachine() {
 
 uint8_t UIStateMachine::setup(){
   uint8_t error = 0;
-  display.setup();
-
- 
   //haptic.setup(); TODO: Remove when hardware is implemented
   return error;
 }
 
 void UIStateMachine::test_ui_state(){
   current_ui_state = TEST_UI;
-  display.test_ui();
   haptic.notice();
 }
 
 void UIStateMachine::error_ui_state(String error_msg){
   current_ui_state = ERROR_UI;
-  display.error_ui(error_msg);
   haptic.notice();
 }
 
 
 void UIStateMachine::status_ui_state(State state) {
   current_ui_state = STATUS_UI;
-  display.status_ui(state);
 }
 
 void UIStateMachine::wb_rec_ui_state(State state){
   current_ui_state = WB_RADIO_UI;
-  display.wb_rec_ui(state);
 }
 
 void UIStateMachine::gps_searching_state(){
-  display.gps_searching_ui();
 }
 
 void UIStateMachine::forecast_ui_state(State state){
   current_ui_state = FORECAST_UI;
-  display.forecast_ui(state);
 }
 
 void UIStateMachine::iridium_msg_ui_state(State state){
   current_ui_state = IRIDIUM_MSG_UI;
-  display.iridium_msg_ui(state);
 }
 
 void UIStateMachine::alert_ui_state(Alert alert){
   current_ui_state = ALERT_UI;
   haptic.alert();
-  display.alert_ui(alert);
 }
 
 void UIStateMachine::refresh(){
-  display.refresh();
 }
 
 void UIStateMachine::button_event_handler(State state) {
@@ -464,10 +450,6 @@ void UIStateMachine::update_ui_state(uint8_t state_num, State state){
 void UIStateMachine::modify_ui_state(UI_Action_t action){
   // TODO: Might need to refactor the ui states to classes with modifier methods.
 }
-
-/* void UIStateMachine::check_encoder_pos(){
-  this->encoder.tick();
-} */
 
 void UIStateMachine::update_indicator_state(Indicator_State_t state){
   switch (state) {
@@ -512,113 +494,6 @@ void UIStateMachine::update_indicator_state(Indicator_State_t state){
     }
 }
 
-// ###############################################################################
-// Display
-// ###############################################################################
-
-Display::Display() {   
-}
-
-Display::~Display() {
-}
-
-uint16_t Display::setup(){
-    // _display.begin();
-    // _display.setRotation(1);
-    // _display.setFont(&FreeSans9pt7b);
-    // _display.setTextWrap(true);
-    // _display.setTextColor(BLACK);
-    return 0;
-}
-
-void Display::refresh(){
-  //_display.refresh();
-}
-
-void Display::status_ui(State state){
-  char health_text[30];
-  char location_text[40];
-  char wx_text[64];
-
-  // _display.clearDisplay();
-  // _display.setCursor(1,15);
-  // _display.print("Health\n");
-  // sprintf(health_text, "Voltage: %.1f\nCharge %d\n\n", state.device_state.voltage, state.device_state.charge_state);
-  // _display.print(health_text);
-  
-  // _display.print("GPS\n");
-  // sprintf(location_text,"Sats: %d\nLat: %.4f\nLon: %.4f\n\n", state.env_state.sats, state.env_state.latitude, state.env_state.longitude);
-  // _display.print(location_text);
-
-  // _display.print("Conditions\n");
-  // sprintf(wx_text,"Temp: %.1f C\nRh: %.1f %%\nPres: %.3f kPa\nVOC: %.1f", state.env_state.temperature, state.env_state.humidity, state.env_state.pressure/1000.0, state.env_state.voc);
-  // _display.print(wx_text);
-  // _display.refresh();
-}
-
-void Display::test_ui(){
-  // _display.setCursor(1,200);
-  // _display.clearDisplay();
-  // _display.setTextSize(2);
-  // _display.println("ImagiSat");
-  // _display.setTextSize(1);
-  // _display.println("A meterologist in your pocket");
-  // _display.refresh();
-}
-
-void Display::error_ui(String error_msg){
-  // _display.setCursor(1,200);
-  // _display.clearDisplay();
-  // _display.setTextSize(2);
-  // _display.println("ERROR!");
-  // _display.setTextSize(1);
-  // _display.println(error_msg);
-  // _display.refresh();
-}
-
-void Display::gps_searching_ui(){
-  // _display.setCursor(1,200);
-  // _display.clearDisplay();
-  // _display.println("Searching for GPS Fix");
-  // _display.refresh();
-}
-
-void Display::alert_ui(Alert alert){
-  // _display.setCursor(100,150);
-  // _display.setTextSize(2);
-  // switch (alert.type){
-  //   case LIGHTNING_ALERT:
-  //       _display.println("LIGHTNING");
-  //       break;
-  //   case SEVERE_WEATHER_ALERT:
-  //       _display.println("SEVERE WEATHER");
-  //       break;
-  // }
-  // _display.setTextSize(3);
-  // _display.println("ALERT");
-  // _display.refresh();
-}
-
-void Display::forecast_ui(State state) {
-  // _display.setCursor(1,200);
-  // _display.clearDisplay();
-  // _display.println("Forecast UI");
-  // _display.refresh();
-}
-
-void Display::wb_rec_ui(State state) {
-  // _display.setCursor(1,200);
-  // _display.clearDisplay();
-  // _display.println("WX BAND UI");
-  // _display.refresh();
-}
-
-void Display::iridium_msg_ui(State state){
-  // _display.setCursor(1,200);
-  // _display.clearDisplay();
-  // _display.println("IRIDIUM UI");
-  // _display.refresh();
-}
 
 // ###############################################################################
 // Haptic Device
